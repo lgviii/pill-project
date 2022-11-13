@@ -1,6 +1,6 @@
 package edu.harvard.ext.dgmd_e14.fall_2022.pill_match.services;
 
-import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities.GenericDrug;
+import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities.Ndc;
 import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities.Pill;
 import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.repositories.PillRepository;
 import org.springframework.stereotype.Service;
@@ -15,12 +15,13 @@ import java.util.Optional;
 public class PillServiceImpl implements PillService {
 
     private final PillRepository pillRepository;
-    private final GenericDrugService drugService;
+
+    private final NdcService ndcService;
 
     @Inject
-    public PillServiceImpl(PillRepository pillRepository, GenericDrugService drugService) {
+    public PillServiceImpl(PillRepository pillRepository, NdcService ndcService) {
         this.pillRepository = pillRepository;
-        this.drugService = drugService;
+        this.ndcService = ndcService;
     }
 
     @Override
@@ -29,8 +30,8 @@ public class PillServiceImpl implements PillService {
     }
 
     @Override
-    public Optional<Pill> findByNdc11(String ndc11) {
-        return pillRepository.findByNdc11(ndc11);
+    public Optional<Pill> findByNdc11AndPart(String ndc11, int part) {
+        return pillRepository.findByNdc_Ndc11AndPart(ndc11, part);
     }
 
     @Override
@@ -61,8 +62,13 @@ public class PillServiceImpl implements PillService {
 
     @Override
     public Pill savePill(Pill pill) {
-        GenericDrug savedDrug = drugService.getOrSaveDrug(pill.getGenericName());
-        pill.setGenericDrug(savedDrug);
+        Optional<Pill> result = pillRepository.findByNdc_Ndc11AndPart(pill.getNdc11(), pill.getPart());
+        if (result.isPresent()) {
+            return result.get();
+        }
+
+        Ndc ndc = ndcService.saveNdc(pill.getNdc());
+        pill.setNdc(ndc);
 
         return pillRepository.save(pill);
     }
