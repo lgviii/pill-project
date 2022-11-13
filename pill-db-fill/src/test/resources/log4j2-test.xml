@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout>
+                <Pattern>%d{HH:mm:ss.SSS} [%t] %-5level %logger{36}.%method (%line): %msg%n</Pattern>
+            </PatternLayout>
+        </Console>
+        <RollingFile name="Appender" fileName="./logs/pill_match.log"
+                     filePattern="./logs/pill_match/$${date:yyyy}/$${date:MM}/pill_match.%d{yyyy-MM-dd}.%i.log"
+                     bufferedIO="true">
+            <PatternLayout>
+                <Pattern>%d [%t] %X{id} %X{username} %-5level %logger{36}.%method (%line): %msg%n</Pattern>
+            </PatternLayout>
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10MB" />
+                <TimeBasedTriggeringPolicy />
+            </Policies>
+        </RollingFile>
+    </Appenders>
+    <Loggers>
+        <Root level="info">
+            <!--Only want info events sent to the console-->
+            <AppenderRef ref="Console" level="info" />
+            <AppenderRef ref="Appender" />
+        </Root>
+        <Logger name="edu.harvard" level="debug" />
+        <!--<Logger name="org.springframework" level="info" />-->
+        <!--Logs Waffle security filter actions-->
+        <!--<Logger name="waffle.servlet" level="debug" />-->
+        <!--Use this to debug the multiple detached entities error, with Hibernate property set in configuration-->
+        <!--<Logger name="org.hibernate.event.internal.EntityCopyAllowedLoggedObserver" level="debug" />-->
+        <!--Logs all SQL DML statements as executed-->
+<!--        <Logger name="org.hibernate.SQL" level="debug" />-->
+        <!--Use this to debug batch handling-->
+        <!--<Logger name="org.hibernate.engine.jdbc" level="debug" />-->
+        <!--Logs all JDBC parameters-->
+        <!--<Logger name="org.hibernate.type" level="trace" />-->
+    </Loggers>
+</Configuration>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>edu.harvard.ext.dgmd_e14.fall_2022</groupId>
+        <artifactId>pill-matcher-parent</artifactId>
+        <version>0.1.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>pill-db-fill</artifactId>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <java.version>17</java.version>
+        <skip.tests>true</skip.tests>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>edu.harvard.ext.dgmd_e14.fall_2022</groupId>
+            <artifactId>pill-matcher-lib</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+
+        <!-- Dependencies added to support database loading from C3PI XML files -->
+
+        <!-- Jackson XML parsing library -->
+        <!-- https://github.com/FasterXML/jackson-dataformat-xml -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+        </dependency>
+
+        <!-- XML library used by Jackson, recommended inclusion on the Jackson XML website -->
+        <dependency>
+            <groupId>com.fasterxml.woodstox</groupId>
+            <artifactId>woodstox-core</artifactId>
+            <version>6.4.0</version>
+        </dependency>
+
+        <!-- TESTING LIBRARIES -->
+
+        <!-- In-memory database that can be used for integration testing -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <skipTests>${skip.tests}</skipTests>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
