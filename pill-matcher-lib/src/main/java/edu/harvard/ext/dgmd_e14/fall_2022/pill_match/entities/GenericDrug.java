@@ -6,6 +6,9 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.util.Objects;
 
+/**
+ * Generic drug name, used as top-level parent to facilitate searches for pills by generic name.
+ */
 @SuppressWarnings("unused")
 @Entity
 @Table(name = "GenericDrug")
