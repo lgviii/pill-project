@@ -2,6 +2,7 @@ package edu.harvard.ext.dgmd_e14.fall_2022.pill_db_fill.c3pi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities.Ndc;
 import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities.Pill;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,14 +53,14 @@ public class C3piDatabaseLoader {
         return xmlVisitor.getFilesProcessed();
     }
 
-    void processXml(Path file) throws IOException {
+    int processXml(Path file) throws IOException {
         LOG.info("Processing XML file {}", file);
         int imagesProcessed = 0;
         int duplicatePhotos = 0;
         int imagesSkipped = 0;
         DiscXml discXml = loadXml(file);
         for (Image image : discXml.getImages()) {
-            if (savePhoto(image)) {
+            if (shouldPhotoBeSaved(image)) {
                 PillPhoto pillPhoto = convertXmlImageToPillPhoto(file, image);
                 // Check if the photo has already been saved since the XML may have duplicates
                 if (photoService.findByC3piImageDirectoryAndC3piImageFile(pillPhoto.getC3piImageDirectory(),
@@ -79,26 +80,32 @@ public class C3piDatabaseLoader {
         }
         LOG.info("Saved {} images, skipped {} images, {} duplicate photos from file {}", imagesProcessed, imagesSkipped,
                  duplicatePhotos, file.getFileName());
+        return imagesProcessed;
     }
 
     DiscXml loadXml(Path file) throws IOException {
         return xmlMapper.readValue(file.toFile(), DiscXml.class);
     }
 
-    boolean savePhoto(Image image) {
+    boolean shouldPhotoBeSaved(Image image) {
         // Just to cut down on the noise, don't save entries for CR2 photos or WMV movies, since we're not going to use
         // these photos/movies
         return !filteredImageTypes.contains(image.getImageFile().getFileType().toUpperCase());
     }
 
     PillPhoto convertXmlImageToPillPhoto(Path path, Image image) {
-        Pill pill = new Pill();
-        pill.setNdc9(image.getNdc9());
-        pill.setNdc11(image.getNcd11());
-        pill.setLabeledBy(image.getLabeledBy());
+        Ndc ndc = new Ndc();
+        ndc.setNdc9(image.getNdc9());
+        ndc.setNdc11(image.getNcd11());
+        ndc.setLabeledBy(image.getLabeledBy());
         // Convert all generic names to upper case for storage to simplify matching
-        pill.setGenericName(image.getGenericName().toUpperCase());
-        pill.setProprietaryName(image.getProprietaryName());
+        ndc.setGenericName(image.getGenericName().toUpperCase());
+        ndc.setProprietaryName(image.getProprietaryName());
+        ndc.setTotalParts(image.getParts());
+
+        Pill pill = new Pill();
+        pill.setNdc(ndc);
+        pill.setPart(image.getPart());
         pill.setImprint(image.getImprint());
         // The XML may have duplicate colors - by using a Set we eliminate them
         pill.setColors(new TreeSet<>(image.getColors()));
