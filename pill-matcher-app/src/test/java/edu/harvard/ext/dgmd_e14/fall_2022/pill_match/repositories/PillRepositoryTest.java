@@ -1,6 +1,6 @@
 package edu.harvard.ext.dgmd_e14.fall_2022.pill_match.repositories;
 
-import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities.GenericDrug;
+import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities.Ndc;
 import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities.Pill;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -33,6 +33,12 @@ class PillRepositoryTest {
 
         Pill pill = result.get();
         checkPillWithTwoColors(pill);
+    }
+
+    @Test
+    void testFindByNdc_Ndc11AndPart() {
+        Optional<Pill> result = repository.findByNdc_Ndc11AndPart("42192035360", 1);
+        assertThat(result.isPresent(), is(true));
     }
 
     @Test
@@ -77,10 +83,15 @@ class PillRepositoryTest {
     @Disabled
     @Test
     void testSave() {
+        Ndc ndc = new Ndc();
+        ndc.setGenericName("DRUG NAME");
+        ndc.setLabeledBy("Manufacturer");
+        ndc.setProprietaryName("Custom drug name");
+        ndc.setTotalParts(1);
+
         Pill pill = new Pill();
-        pill.setGenericDrug(new GenericDrug("DRUG NAME"));
-        pill.setLabeledBy("Manufacturer");
-        pill.setProprietaryName("Custom drug name");
+        pill.setNdc(ndc);
+        pill.setPart(1);
         pill.setShape("Round");
         pill.setColors(new TreeSet<>(Arrays.asList("White", "Blue")));
         pill.setScore("2");
