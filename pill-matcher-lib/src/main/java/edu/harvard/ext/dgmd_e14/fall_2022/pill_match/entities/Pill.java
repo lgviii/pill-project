@@ -1,6 +1,10 @@
 package edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.SortedSet;
 
 /**
@@ -93,8 +97,21 @@ public class Pill extends BaseEntity {
         this.part = part;
     }
 
+    public boolean hasImprint() {
+        return imprint != null && !imprint.isBlank();
+    }
+
     public String getImprint() {
         return imprint;
+    }
+
+    public List<String> getImprintSections() {
+        if (hasImprint()) {
+            return Arrays.asList(imprint.toLowerCase().split(";"));
+        }
+        else {
+            return new ArrayList<>();
+        }
     }
 
     public void setImprint(String imprint) {
@@ -131,5 +148,22 @@ public class Pill extends BaseEntity {
 
     public void setSize(int size) {
         this.size = size;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Pill pill = (Pill) o;
+        return part == pill.part && Objects.equals(ndc, pill.ndc);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ndc, part);
     }
 }

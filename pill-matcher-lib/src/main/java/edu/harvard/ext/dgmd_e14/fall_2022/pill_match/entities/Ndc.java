@@ -10,6 +10,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Entity representing the NDC code which may contain multiple parts, each matching a different pill.
@@ -112,5 +113,22 @@ public class Ndc extends BaseEntity {
 
     public void setPills(List<Pill> pills) {
         this.pills = pills;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Ndc ndc = (Ndc) o;
+        return Objects.equals(ndc11, ndc.ndc11);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ndc11);
     }
 }
