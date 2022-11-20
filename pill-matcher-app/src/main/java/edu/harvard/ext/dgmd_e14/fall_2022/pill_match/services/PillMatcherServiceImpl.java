@@ -1,22 +1,97 @@
 package edu.harvard.ext.dgmd_e14.fall_2022.pill_match.services;
 
 import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities.Pill;
+import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.repositories.PillRepository;
 import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class PillMatcherServiceImpl implements PillMatcherService {
 
-    private final LevenshteinDistance levenshteinDistance;
+    private static final int MODEL_OUTPUT_LIMIT = 2;
 
-    public PillMatcherServiceImpl() {
+    private final LevenshteinDistance levenshteinDistance;
+    private final PillRepository pillRepository;
+
+    @Inject
+    public PillMatcherServiceImpl(PillRepository pillRepository) {
         this.levenshteinDistance = new LevenshteinDistance();
+        this.pillRepository = pillRepository;
+    }
+
+    @Override
+    public Map<Pill, Double> findMatchingPills(Map<String, Double> colorMatchMap, Map<String, Double> shapeMatchMap,
+                                               Collection<String> predictionGroups) {
+        // For now we're just going to do single color matches
+        // Use the model output limit to define how many matches we'll actually use from each color and shape model
+        // outputs
+        List<String> colors = limitModelOutput(colorMatchMap);
+        List<String> shapes = limitModelOutput(shapeMatchMap);
+
+        // Build the Map of all pills that are matched by color and shape, along with the accuracy of the match based
+        // on the color/shape accuracy
+        Map<Pill, Double> colorShapePillMatchMap = new HashMap<>();
+        for (String color : colors) {
+            for (String shape : shapes) {
+                double accuracy = colorMatchMap.get(color) * shapeMatchMap.get(shape);
+                List<Pill> pills = pillRepository.findAllByShapeAndSingleColor(shape, color);
+                pills.forEach(pill -> colorShapePillMatchMap.put(pill, accuracy));
+            }
+        }
+
+        if (colorShapePillMatchMap.isEmpty()) {
+            return colorShapePillMatchMap;
+        }
+
+        // Now whittle down the list by predicted imprint, if any
+        if (predictionGroups.isEmpty() || predictionGroups.stream().allMatch(String::isBlank)) {
+            // If no predictions were found for imprint text, just adjust the accuracy for all the pills in the early match
+            // by reducing using the MISSING_IMPRINT_FACTOR.
+            for (Map.Entry<Pill, Double> pillEntry : colorShapePillMatchMap.entrySet()) {
+                if (pillEntry.getKey().hasImprint()) {
+                    pillEntry.setValue(pillEntry.getValue() * MISSING_IMPRINT_FACTOR);
+                }
+            }
+            return colorShapePillMatchMap;
+        }
+        else {
+            // If predictions WERE found, first remove all pills that don't have an imprint
+            for (Pill pill : colorShapePillMatchMap.keySet()) {
+                if (!pill.hasImprint()) {
+                    colorShapePillMatchMap.remove(pill);
+                }
+            }
+            Map<Pill, Double> imprintMatches = matchPillsByPredictedImprints(predictionGroups,
+                                                                             colorShapePillMatchMap.keySet());
+            // Build a new final match list using the text accuracy from the imprint matches and the color/shape
+            // accuracy from the color/shape matches
+            Map<Pill, Double> finalMatchMap = new HashMap<>();
+            for (Map.Entry<Pill, Double> imprintEntry : imprintMatches.entrySet()) {
+                Pill pill = imprintEntry.getKey();
+                finalMatchMap.put(pill, imprintEntry.getValue() * colorShapePillMatchMap.get(pill));
+            }
+            return finalMatchMap;
+        }
+    }
+
+    List<String> limitModelOutput(Map<String, Double> modelOutputMap) {
+        if (modelOutputMap.size() <= MODEL_OUTPUT_LIMIT) {
+            return new ArrayList<>(modelOutputMap.keySet());
+        }
+
+        List<Map.Entry<String, Double>> sortedOutputMap = new ArrayList<>(modelOutputMap.entrySet());
+        sortedOutputMap.sort(Map.Entry.comparingByValue());
+
+        return sortedOutputMap.subList(0, MODEL_OUTPUT_LIMIT)
+                              .stream().map(Map.Entry::getKey).collect(Collectors.toList());
     }
 
     @Override

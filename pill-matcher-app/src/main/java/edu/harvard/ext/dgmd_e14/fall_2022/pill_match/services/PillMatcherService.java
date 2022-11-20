@@ -12,6 +12,12 @@ import java.util.Map;
 public interface PillMatcherService {
 
     /**
+     * Factor used to reduce the accuracy when matching pills that should have an imprint, if no predicted imprint
+     * was found in the photo.
+     */
+    double MISSING_IMPRINT_FACTOR = 0.75;
+
+    /**
      * <p>
      * Attempts to find all pills matching the specified colors, shapes, and predicted imprint text groups.
      * </p><p>
@@ -23,8 +29,8 @@ public interface PillMatcherService {
      * the results, as the presence of any predicted text is taken to mean that the pill has some imprint.<br>
      * However, pills that DO have an imprint will still be included in the results even if there's no predicted
      * imprint text, because the OCR prediction often fails to find any text even in pills with imprints.  These
-     * pills will have their overall accuracy score multiplied by 0.75 to place them below matches against pills that
-     * have no imprint.
+     * pills will have their overall accuracy score multiplied by MISSING_IMPRINT_FACTOR to place them below matches
+     * against pills that have no imprint.
      * </p><p>
      * Accuracy values will be in the range [0.0, 1.0].
      * </p>
