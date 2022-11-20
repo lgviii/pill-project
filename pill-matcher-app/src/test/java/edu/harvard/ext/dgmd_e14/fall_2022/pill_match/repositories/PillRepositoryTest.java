@@ -37,19 +37,10 @@ class PillRepositoryTest {
 
     @Test
     void testFindByNdc_Ndc11AndPart() {
-        Optional<Pill> result = repository.findByNdc_Ndc11AndPart("42192035360", 1);
+        Optional<Pill> result = repository.findByNdc_Ndc11AndPart("42192035360", 2);
         assertThat(result.isPresent(), is(true));
         // Check part and total parts
-        Pill pill = result.get();
-        assertThat(pill.getId(), is(4011L));
-        assertThat(pill.getNdc11(), is("42192035360"));
-        assertThat(pill.getTotalParts(), is(2));
-        assertThat(pill.getPart(), is(1));
-        assertThat(pill.getImprint(), is("353"));
-        assertThat(pill.getShape(), is("OVAL"));
-        assertThat(pill.getScore(), is("1"));
-        assertThat(pill.getSize(), is(16));
-        assertThat(pill.getColors(), contains("BROWN"));
+        checkPillWithSingleColor(result.get());
     }
 
     @Test
@@ -74,6 +65,32 @@ class PillRepositoryTest {
         assertThat(result, hasSize(12));
         result.sort(Comparator.comparing(Pill::getNdc11));
         checkPillWithTwoColors(result.get(0));
+    }
+
+    @Test
+    void testFindAllByShapeAndSingleColor() {
+        List<Pill> result = repository.findAllByShapeAndSingleColor("OVAL", "YELLOW");
+        assertThat(result, hasSize(248));
+        result.sort(Comparator.comparing(Pill::getNdc11));
+        checkPillWithSingleColor(result.get(143));
+    }
+
+    void checkPillWithSingleColor(Pill pill) {
+        assertThat(pill.getId(), is(2357L));
+        assertThat(pill.getGenericDrug().getId(), is(885L));
+        assertThat(pill.getNdc().getId(), is(2333L));
+        assertThat(pill.getGenericName(), is("PRENATAL / MULTIVITAMIN TABLETS AND OMEGA-3 (DHA) GELCAPS"));
+        assertThat(pill.getNdc9(), is("421920353"));
+        assertThat(pill.getNdc11(), is("42192035360"));
+        assertThat(pill.getProprietaryName(), is("Choice - OB + DHA"));
+        assertThat(pill.getLabeledBy(), is("ACELLA PHARMACEUTICALS, LLC"));
+        assertThat(pill.getTotalParts(), is(2));
+        assertThat(pill.getPart(), is(2));
+        assertThat(pill.getImprint(), is(nullValue()));
+        assertThat(pill.getShape(), is("OVAL"));
+        assertThat(pill.getScore(), is("1"));
+        assertThat(pill.getSize(), is(22));
+        assertThat(pill.getColors(), contains("YELLOW"));
     }
 
     void checkPillWithTwoColors(Pill result) {
