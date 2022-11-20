@@ -20,6 +20,13 @@ public interface PillRepository extends JpaRepository<Pill, Long> {
            + "WHERE pill.shape = :shape")
     List<Pill> findAllByShape(@Param("shape") String shape);
 
+    /**
+     * Finds all pills that have the specified color, including pills with multiple colors.  That is, if a pill has
+     * more than one color, but one of them matches the specified color, that pill will be included in the results.
+     *
+     * @param color color to search for, should be upper-case to match SPL standard
+     * @return List containing all pills that have the specified color
+     */
     @Query("SELECT DISTINCT pill FROM Pill pill JOIN FETCH pill.ndc ndc "
            + "JOIN FETCH ndc.genericDrug genericDrug JOIN FETCH pill.colors colors "
            + "WHERE :color IN ELEMENTS(pill.colors)")
@@ -28,8 +35,8 @@ public interface PillRepository extends JpaRepository<Pill, Long> {
     /**
      * Finds all pills that have both specified colors.
      *
-     * @param colorOne first color to match, case-sensitive
-     * @param colorTwo second color to match, case-sensitive
+     * @param colorOne first color to match, should be upper-case to match SPL standard
+     * @param colorTwo second color to match, should be upper-case to match SPL standard
      * @return List containing all pills that have both specified colors
      */
     @Query("SELECT DISTINCT pill FROM Pill pill JOIN FETCH pill.ndc ndc "
@@ -37,6 +44,15 @@ public interface PillRepository extends JpaRepository<Pill, Long> {
            + "WHERE :color1 IN ELEMENTS(pill.colors) AND :color2 IN ELEMENTS(pill.colors)")
     List<Pill> findAllByTwoColors(@Param("color1") String colorOne, @Param("color2") String colorTwo);
 
+    /**
+     * Finds all pills that have the specified shape and color, including pills with multiple colors.  That is, if a
+     * pill has more than one color, but one of them matches the specified color, that pill will be included in the
+     * results.
+     *
+     * @param shape shape to search for, should be upper-case to match SPL standard
+     * @param color color to search for, should be upper-case to match SPL standard
+     * @return List containing all pills that have both the specified shape and color
+     */
     @Query("SELECT DISTINCT pill FROM Pill pill JOIN FETCH pill.ndc ndc "
            + "JOIN FETCH ndc.genericDrug genericDrug JOIN FETCH pill.colors colors "
            + "WHERE pill.shape = :shape AND :color IN ELEMENTS(pill.colors)")
@@ -45,9 +61,9 @@ public interface PillRepository extends JpaRepository<Pill, Long> {
     /**
      * Finds all pills that have the specified shape and both specified colors.
      *
-     * @param shape shape to match, case-sensitive
-     * @param colorOne first color to match, case-sensitive
-     * @param colorTwo second color to match, case-sensitive
+     * @param shape shape to match, should be upper-case to match SPL standard
+     * @param colorOne first color to match, should be upper-case to match SPL standard
+     * @param colorTwo second color to match, should be upper-case to match SPL standard
      * @return List containing all pills that have the specified shape and both specified colors
      */
     @Query("SELECT DISTINCT pill FROM Pill pill JOIN FETCH pill.ndc ndc "
