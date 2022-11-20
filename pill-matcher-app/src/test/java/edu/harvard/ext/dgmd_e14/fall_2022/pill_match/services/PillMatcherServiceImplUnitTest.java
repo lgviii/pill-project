@@ -1,22 +1,30 @@
 package edu.harvard.ext.dgmd_e14.fall_2022.pill_match.services;
 
+import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.repositories.PillRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
+@ExtendWith(MockitoExtension.class)
 class PillMatcherServiceImplUnitTest {
+
+    @Mock
+    private PillRepository pillRepositoryMock;
 
     private PillMatcherServiceImpl service;
 
     @BeforeEach
     void setUp() {
-        service = new PillMatcherServiceImpl();
+        service = new PillMatcherServiceImpl(pillRepositoryMock);
     }
 
     @Test
