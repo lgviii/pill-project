@@ -1,5 +1,6 @@
 package edu.harvard.ext.dgmd_e14.fall_2022.pill_match.services;
 
+import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.ImageModelOutput;
 import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities.Pill;
 import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.repositories.PillRepository;
 import org.apache.commons.text.similarity.LevenshteinDistance;
@@ -28,8 +29,22 @@ public class PillMatcherServiceImpl implements PillMatcherService {
     }
 
     @Override
-    public Map<Pill, Double> findMatchingPills(Map<String, Double> colorMatchMap, Map<String, Double> shapeMatchMap,
-                                               Collection<String> predictionGroups) {
+    public Map<Pill, Double> findMatchingPills(Collection<ImageModelOutput> modelOutputs) {
+        // Pull the color and shape model outputs - just use the first set we find in the collection
+        Map<String, Double> colorMatchMap = null;
+        Map<String, Double> shapeMatchMap = null;
+        for (ImageModelOutput modelOutput : modelOutputs) {
+            // We'll assume that if color model output is present, shape is also
+            if (modelOutput.getColorModelMatches() != null && !modelOutput.getColorModelMatches().isEmpty()) {
+                colorMatchMap = modelOutput.getColorModelMatches();
+                shapeMatchMap = modelOutput.getShapeModelMatches();
+                break;
+            }
+        }
+
+        assert colorMatchMap != null;
+        assert shapeMatchMap != null;
+
         // For now we're just going to do single color matches
         // Use the model output limit to define how many matches we'll actually use from each color and shape model
         // outputs
@@ -47,9 +62,12 @@ public class PillMatcherServiceImpl implements PillMatcherService {
             }
         }
 
+        // If there aren't any pills that match the provided color/shape combinations, stop here
         if (colorShapePillMatchMap.isEmpty()) {
             return colorShapePillMatchMap;
         }
+
+        List<String> predictionGroups = combineImprintOutputs(modelOutputs);
 
         // Now whittle down the list by predicted imprint, if any
         if (predictionGroups.isEmpty() || predictionGroups.stream().allMatch(String::isBlank)) {
@@ -92,6 +110,34 @@ public class PillMatcherServiceImpl implements PillMatcherService {
 
         return sortedOutputMap.subList(0, MODEL_OUTPUT_LIMIT)
                               .stream().map(Map.Entry::getKey).collect(Collectors.toList());
+    }
+
+    List<String> combineImprintOutputs(Collection<ImageModelOutput> imageModelOutputs) {
+        // We'll assume that the prediction output is in the same order, so we'll just concatenate the strings together
+        List<String> combinedImprints = new ArrayList<>();
+        for (ImageModelOutput imageModelOutput : imageModelOutputs) {
+            List<String> imprints = imageModelOutput.getImprintPredictions();
+            if (combinedImprints.isEmpty()) {
+                combinedImprints.addAll(imprints);
+            }
+            else {
+                for (int i = 0; i < imprints.size(); i++) {
+                    String imprint = imprints.get(i);
+                    String current = combinedImprints.get(i);
+                    // Only include this imprint if it's not blank
+                    if (!imprint.isBlank()) {
+                        String combined = imprint;
+                        // Only concatenate if the current imprint also isn't blank - order doesn't matter since each
+                        // section is compared individually
+                        if (!current.isBlank()) {
+                            combined += ";" + current;
+                        }
+                        combinedImprints.set(i, combined);
+                    }
+                }
+            }
+        }
+        return combinedImprints;
     }
 
     @Override
