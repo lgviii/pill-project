@@ -1,17 +1,17 @@
 const video = document.getElementById("video");
 
-function startVideo() {
-  navigator.mediaDevices
-    .getUserMedia({
-      video: true,
-    })
-    .then(
-      (stream) => (video.srcObject = stream),
-      (err) => console.log(err)
-    );
-}
-
-startVideo();
+//function startVideo() {
+//  navigator.mediaDevices
+//    .getUserMedia({
+//      video: true,
+//    })
+//    .then(
+//      (stream) => (video.srcObject = stream),
+//      (err) => console.log(err)
+//    );
+//}
+//
+//startVideo();
 
 // camera stream video element
 let on_stream_video = document.querySelector("#camera-stream");
@@ -84,7 +84,7 @@ document
 
     canvas.toBlob((blob) => {
       let formData = new FormData();
-      formData.append("image", blob, "file.png");
+      formData.append("image", blob, "camera-image.png");
 
       var xmlHttpReq = false;
 
@@ -98,7 +98,17 @@ document
 
       ajax.onreadystatechange = function () {
         console.log(ajax.responseText);
+        document.getElementById('output').innerHTML = ajax.responseText;
       };
       ajax.send(formData);
     });
   });
+
+
+//Navigate via address-bar to inse in Chrome.
+//
+//Find and enable the Insecure origins treated as secure section.
+//
+//Add any addresses you want to ignore the secure origin policy for. (Include the port number if required.)
+//
+//Save and restart Chrome.
