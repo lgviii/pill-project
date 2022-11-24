@@ -33,7 +33,7 @@ public class UploadController {
 
 		var ocrResponse = RequestOcrRun(fileNameAndPath.toString());
 
-		return new ResponseEntity("Prediction: " + ocrResponse, HttpStatus.OK);
+		return new ResponseEntity("<b>Prediction: </b>" + ocrResponse, HttpStatus.OK);
 	}
 
 	class Request {

@@ -1,14 +1,62 @@
+
+
 video  {
-  width: 192px;
-  height: 192px;
-  background: rgba(0,0,0,0.2);
-  -webkit-transform: scaleX(-1); /* mirror effect while using front cam */
-  transform: scaleX(-1);         /* mirror effect while using front cam */
+  width: 250px;
+  height: 250px;
+  border-style: dotted;
+  padding: 20px;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-#canvas  {
-  width: 192px;
-  height: 192px;
-  -webkit-transform: scaleX(-1); /* mirror effect while using front cam */
-  transform: scaleX(-1);         /* mirror effect while using front cam */
+canvas  {
+  width: 400px;
+  height: 400px;
+  background: rgb(75 183 151);
+  padding: 20px;
+  margin: 20px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+button{
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.flex-container {
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+}
+
+.title-label {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#prediction-label {
+    margin-top: 20px;
+      margin-bottom: 20px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+#output {
+    margin: 15px;
+    max-width: 80%;
+}
+
+#spinner {
+    display: none;
+      margin-top: 40px;
+      margin-bottom: 40px;
+      margin-left: auto;
+      margin-right: auto;
 }

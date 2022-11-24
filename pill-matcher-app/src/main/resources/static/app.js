@@ -1,39 +1,20 @@
+let shouldFaceUser = false;
+
 const video = document.getElementById("video");
-
-//function startVideo() {
-//  navigator.mediaDevices
-//    .getUserMedia({
-//      video: true,
-//    })
-//    .then(
-//      (stream) => (video.srcObject = stream),
-//      (err) => console.log(err)
-//    );
-//}
-//
-//startVideo();
-
-// camera stream video element
+let toggleCameraButton = document.querySelector("#toggle-camera-button");
 let on_stream_video = document.querySelector("#camera-stream");
+let spinner = document.querySelector("#spinner");
 
-// flip button element
-let flipBtn = document.querySelector("#flip-btn");
-
-// default user media options
 let constraints = { audio: false, video: true };
 
-// should default to false for pill photo and if has rear camera, else true
-let shouldFaceUser = true;
-
-// check whether we can use facingMode
 let supports = navigator.mediaDevices.getSupportedConstraints();
 if (supports["facingMode"] === true) {
-  flipBtn.disabled = false;
+  toggleCameraButton.disabled = false;
 }
 
 let stream = null;
 
-function capture() {
+function streamVideoFeed() {
   constraints.video = {
     width: {
       min: 600,
@@ -60,22 +41,24 @@ function capture() {
     });
 }
 
-flipBtn.addEventListener("click", function () {
+streamVideoFeed();
+
+toggleCameraButton.addEventListener("click", function () {
   if (stream == null) return;
-  // we need to flip, stop everything
+
   stream.getTracks().forEach((t) => {
     t.stop();
   });
-  // toggle / flip
-  shouldFaceUser = !shouldFaceUser;
-  capture();
-});
 
-capture();
+  shouldFaceUser = !shouldFaceUser;
+  streamVideoFeed();
+});
 
 document
   .getElementById("capture-camera")
   .addEventListener("click", function () {
+
+    spinner.style.display = "block"
 
     const video = document.querySelector("video");
     canvas.width = video.videoWidth;
@@ -99,10 +82,20 @@ document
       ajax.onreadystatechange = function () {
         console.log(ajax.responseText);
         document.getElementById('output').innerHTML = ajax.responseText;
+
+        spinner.style.display = "none"
       };
       ajax.send(formData);
     });
   });
+
+
+
+
+
+
+
+
 
 
 //Navigate via address-bar to inse in Chrome.
