@@ -12,20 +12,28 @@ import java.util.Optional;
 @Validated
 public interface PillService {
 
+    @NotNull
     Optional<Pill> findBySer(@NotNull Long pillSer);
 
-    Optional<Pill> findByNdc11(@NotNull String ndc11);
+    @NotNull
+    Optional<Pill> findByNdc11AndPart(@NotNull String ndc11, int part);
 
+    @NotNull
     List<Pill> findAllByShape(@NotNull String color);
 
+    @NotNull
     List<Pill> findAllBySingleColor(@NotNull String color);
 
+    @NotNull
     List<Pill> findAllByTwoColors(@NotNull String colorOne, @NotNull String colorTwo);
 
+    @NotNull
     List<Pill> findAllByShapeAndSingleColor(@NotNull String shape, @NotNull String color);
 
+    @NotNull
     List<Pill> findAllByShapeAndTwoColors(@NotNull String shape, @NotNull String colorOne, @NotNull String colorTwo);
 
+    @NotNull
     Pill savePill(@NotNull @Valid Pill pill);
 
 }

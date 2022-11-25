@@ -54,7 +54,8 @@ public class C3piDatabaseLoaderTest {
     @Test
     void testProcessXml() throws IOException {
         Path file = Paths.get(C3piDatabaseLoader.XML_DIRECTORY, "PillProjectDisc1.xml");
-        databaseLoader.processXml(file);
+        int saved = databaseLoader.processXml(file);
+        assertThat(saved, is(1148));
     }
 
     @Test
@@ -77,6 +78,8 @@ public class C3piDatabaseLoaderTest {
         assertThat(pillA.getLabeledBy(), is("AUROBINDO PHARMA USA, INC."));
         assertThat(pillA.getGenericName(), is("VALSARTAN AND HYDROCHLOROTHIAZIDE"));
         assertThat(pillA.getProprietaryName(), is("VALSARTAN and HYDROCHLOROTHIAZIDE Tablets, USP"));
+        assertThat(pillA.getTotalParts(), is(1));
+        assertThat(pillA.getPart(), is(1));
         assertThat(pillA.getImprint(), is("I;63"));
         assertThat(pillA.getColors(), contains("BROWN"));
         assertThat(pillA.getShape(), is("OVAL"));
@@ -103,6 +106,8 @@ public class C3piDatabaseLoaderTest {
         assertThat(pillB.getLabeledBy(), is("SANDOZ INC"));
         assertThat(pillB.getGenericName(), is("INDOMETHACIN"));
         assertThat(pillB.getProprietaryName(), is("INDOMETHACIN SR 75MG"));
+        assertThat(pillB.getTotalParts(), is(1));
+        assertThat(pillB.getPart(), is(1));
         assertThat(pillB.getImprint(), is("E;720;E;720"));
         assertThat(pillB.getColors(), contains("GREEN", "WHITE"));
         assertThat(pillB.getShape(), is("CAPSULE"));

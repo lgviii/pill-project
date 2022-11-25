@@ -12,21 +12,34 @@ create table GenericDrug (
 	CONSTRAINT UQ_GenericDrug_GenericName UNIQUE (GenericName)
 );
 
+create table Ndc (
+    NdcSer bigint not null auto_increment,
+    GenericDrugSer bigint not null,
+    Ndc9 varchar(9),
+    Ndc11 varchar(11),
+    LabeledBy varchar(500),
+    ProprietaryName varchar(500) not null,
+    TotalParts int not null,
+    CONSTRAINT PK_Ndc_NdcSer PRIMARY KEY (NdcSer),
+    CONSTRAINT UQ_Ndc_Ndc11 UNIQUE (Ndc11),
+    CONSTRAINT FK_Ndc_GenericDrugSer_GenericDrug FOREIGN KEY (GenericDrugSer)
+        REFERENCES GenericDrug (GenericDrugSer)
+        ON DELETE NO ACTION
+        ON UPDATE NO ACTION
+);
+
 create table Pill (
 	PillSer bigint not null auto_increment,
-	GenericDrugSer bigint not null,
-	Ndc9 varchar(9),
-	Ndc11 varchar(11),
-	LabeledBy varchar(500),
-	ProprietaryName varchar(500) not null,
+	NdcSer bigint not null,
+	Part int not null,
 	Imprint varchar(50),
 	Shape varchar(50) not null,
 	Score varchar(25) not null,
 	PillSize integer not null,
 	CONSTRAINT PK_Pill_PillSer PRIMARY KEY (PillSer),
-	CONSTRAINT UQ_Pill_Ndc11 UNIQUE (Ndc11),
-	CONSTRAINT FK_Pill_GenericDrugSer_GenericDrug FOREIGN KEY (GenericDrugSer)
-					  REFERENCES GenericDrug (GenericDrugSer)
+	CONSTRAINT UQ_Pill_NdcSer_Part UNIQUE (NdcSer, Part),
+	CONSTRAINT FK_Pill_NdcSer_Ndc FOREIGN KEY (NdcSer)
+					  REFERENCES Ndc (NdcSer)
 					  ON DELETE NO ACTION
 					  ON UPDATE NO ACTION
 );
@@ -63,11 +76,11 @@ create table PillPhoto (
 					  ON UPDATE NO ACTION
 );
 
+CREATE INDEX IX_Ndc_ProprietaryName ON Ndc (ProprietaryName);
+
 CREATE INDEX IX_Pill_Imprint ON Pill (Imprint);
 
 CREATE INDEX IX_Pill_Shape ON Pill (Shape);
-
-CREATE INDEX IX_Pill_ProprietaryName ON Pill (ProprietaryName);
 
 CREATE INDEX IX_PillPhoto_C3PiClass ON PillPhoto (C3PiClass);
 
@@ -80,30 +93,47 @@ AS
 
 CREATE VIEW vv_Pill
 AS
-	SELECT GenericDrug.GenericName, Pill.*, vv_PillColor.Colors
+	SELECT GenericDrug.GenericName,
+	       Ndc.*,
+	       Pill.PillSer,
+	       Pill.Part,
+	       Pill.Imprint,
+	       Pill.Shape,
+	       Pill.Score,
+	       Pill.PillSize,
+	       vv_PillColor.Colors
 	FROM Pill
-	JOIN GenericDrug ON Pill.GenericDrugSer = GenericDrug.GenericDrugSer
+    JOIN Ndc ON Pill.NdcSer = Ndc.NdcSer
+	JOIN GenericDrug ON Ndc.GenericDrugSer = GenericDrug.GenericDrugSer
     JOIN vv_PillColor ON Pill.PillSer = vv_PillColor.PillSer;
 
 
 CREATE VIEW vv_PillPhoto
 AS
-	SELECT GenericDrug.GenericName, Pill.*, 
-	PillPhoto.PillPhotoSer,
-	PillPhoto.C3piClass,
-	PillPhoto.C3piImageDirectory,
-	PillPhoto.C3piImageFile,
-	PillPhoto.C3piImageFileType,
-	PillPhoto.ImprintRating,
-	PillPhoto.ShapeRating,
-	PillPhoto.ColorRating,
-	PillPhoto.ShadowRating,
-	PillPhoto.BackgroundRating,
-	PillPhoto.ImprintType,
-	PillPhoto.ImprintColor,
-	PillPhoto.ImprintSymbol,
-	vv_PillColor.Colors
+	SELECT GenericDrug.GenericName,
+	       Ndc.*,
+           Pill.PillSer,
+           Pill.Part,
+           Pill.Imprint,
+           Pill.Shape,
+           Pill.Score,
+           Pill.PillSize,
+           PillPhoto.PillPhotoSer,
+           PillPhoto.C3piClass,
+           PillPhoto.C3piImageDirectory,
+           PillPhoto.C3piImageFile,
+           PillPhoto.C3piImageFileType,
+           PillPhoto.ImprintRating,
+           PillPhoto.ShapeRating,
+           PillPhoto.ColorRating,
+           PillPhoto.ShadowRating,
+           PillPhoto.BackgroundRating,
+           PillPhoto.ImprintType,
+           PillPhoto.ImprintColor,
+           PillPhoto.ImprintSymbol,
+           vv_PillColor.Colors
 	FROM Pill
-	JOIN GenericDrug ON Pill.GenericDrugSer = GenericDrug.GenericDrugSer
+    JOIN Ndc on Pill.NdcSer = Ndc.NdcSer
+	JOIN GenericDrug ON Ndc.GenericDrugSer = GenericDrug.GenericDrugSer
 	JOIN PillPhoto ON Pill.PillSer = PillPhoto.PillSer
     JOIN vv_PillColor ON Pill.PillSer = vv_PillColor.PillSer;

@@ -1,13 +1,18 @@
 package edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.SortedSet;
 
 /**
+ * Entity representing a single pill linked with an NDC identifier - note that for a given NDC, there may be multiple
+ * parts, each linked to a different pill.
  * Class based on data available in the C3PI dataset XML metadata files.
  * Not based on the actual FDA SPL documents, since we won't be using that for this project due to problems
  * reconciling the C3PI dataset with the FDA SPL documents.
- * For easier use, also includes some C3PI metadata values such as class, file name, file type, and directory/path.
  */
 @SuppressWarnings("unused")
 @Entity
@@ -18,20 +23,15 @@ import java.util.SortedSet;
 public class Pill extends BaseEntity {
 
     @ManyToOne(cascade = CascadeType.ALL, optional = false)
-    @JoinColumn(name = "GenericDrugSer", nullable = false)
-    private GenericDrug genericDrug;
+    @JoinColumn(name = "NdcSer", nullable = false,
+                foreignKey = @ForeignKey(name = "FK_Pill_NdcSer_Ndc"))
+    private Ndc ndc;
 
-    @Column(name = "Ndc9", length = 9)
-    private String ndc9;
-
-    @Column(name = "Ndc11", length = 11)
-    private String ndc11;
-
-    @Column(name = "LabeledBy", length = 500)
-    private String labeledBy;
-
-    @Column(name = "ProprietaryName", nullable = false, length = 500)
-    private String proprietaryName;
+    /**
+     * Tracks which part of the NDC this pill matches, if the NDC has multiple parts.
+     */
+    @Column(name = "Part", nullable = false)
+    private int part;
 
     @Column(name = "Imprint", length = 50)
     private String imprint;
@@ -53,61 +53,65 @@ public class Pill extends BaseEntity {
     @Column(name = "PillSize", nullable = false)
     private int size;
 
-    public GenericDrug getGenericDrug() {
-        return genericDrug;
+    public Ndc getNdc() {
+        return ndc;
     }
 
-    public void setGenericDrug(GenericDrug genericDrug) {
-        this.genericDrug = genericDrug;
+    public void setNdc(Ndc ndc) {
+        this.ndc = ndc;
+    }
+
+    public GenericDrug getGenericDrug() {
+        return ndc.getGenericDrug();
     }
 
     public String getNdc9() {
-        return ndc9;
-    }
-
-    public void setNdc9(String ndc9) {
-        this.ndc9 = ndc9;
+        return ndc.getNdc9();
     }
 
     public String getNdc11() {
-        return ndc11;
-    }
-
-    public void setNdc11(String ndc11) {
-        this.ndc11 = ndc11;
+        return ndc.getNdc11();
     }
 
     public String getLabeledBy() {
-        return labeledBy;
-    }
-
-    public void setLabeledBy(String labeledBy) {
-        this.labeledBy = labeledBy;
+        return ndc.getLabeledBy();
     }
 
     public String getGenericName() {
-        return genericDrug != null ? genericDrug.getGenericName() : null;
-    }
-
-    public void setGenericName(String genericName) {
-        if (genericName != null) {
-            genericDrug = new GenericDrug(genericName);
-        }
-        else {
-            genericDrug = null;
-        }
+        return ndc != null ? ndc.getGenericName() : null;
     }
 
     public String getProprietaryName() {
-        return proprietaryName;
+        return ndc.getProprietaryName();
     }
 
-    public void setProprietaryName(String proprietaryName) {
-        this.proprietaryName = proprietaryName;
+    public int getTotalParts() {
+        return ndc.getTotalParts();
+    }
+
+    public int getPart() {
+        return part;
+    }
+
+    public void setPart(int part) {
+        this.part = part;
+    }
+
+    public boolean hasImprint() {
+        return imprint != null && !imprint.isBlank();
     }
 
     public String getImprint() {
         return imprint;
+    }
+
+    public List<String> getImprintSections() {
+        if (hasImprint()) {
+            return Arrays.asList(imprint.toLowerCase().split(";"));
+        }
+        else {
+            return new ArrayList<>();
+        }
     }
 
     public void setImprint(String imprint) {
@@ -144,5 +148,22 @@ public class Pill extends BaseEntity {
 
     public void setSize(int size) {
         this.size = size;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Pill pill = (Pill) o;
+        return part == pill.part && Objects.equals(ndc, pill.ndc);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(ndc, part);
     }
 }

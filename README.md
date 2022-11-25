@@ -20,7 +20,10 @@ This directory contains SQL scripts.
 
 The other SQL scripts are meant for use in creating and filling the database to be used by the pill-matcher application, and should be executed in the following order to ensure foreign key consistency.
 1) **pilldb_genericdrug.sql** - This SQL script creates and fills the GenericDrug table.
-2) **pilldb_pill.sql** - This SQL script creates and fills the Pill table, which has a many-to-one relationship with GenericDrug.
+2) **pilldb_ndc.sql** - This SQL script creates and fills the Ndc table, which has a many-to-one relationship with GenericDrug.
+2) **pilldb_pill.sql** - This SQL script creates and fills the Pill table, which has a many-to-one relationship with Ndc.
 3) **pilldb_pillcolor.sql** - This SQL script creates and fills the PillColor table, which has a many-to-one relationship with Pill.
 
 GenericDrug is separated into its own table since there are multiple pills from different labelers that contain the same drug.  The idea is that this could (potentially) be used as a reach goal to allow refining the list of possible pill matches by user input of the medications they take.
+
+Ndc is separated into its own table from necessity, because an NDC may consist of multiple pills, each identified by the Part number within that NDC.
