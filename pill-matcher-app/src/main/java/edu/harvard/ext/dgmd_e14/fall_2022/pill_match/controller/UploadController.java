@@ -7,12 +7,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @Controller
@@ -22,8 +19,6 @@ public class UploadController {
 
 	public static String UPLOAD_DIRECTORY = "C:/Users/lgvii/Desktop/pills";
 
-
-
 	@PostMapping("/upload")
 	public ResponseEntity<String> uploadImage(@RequestParam("image") MultipartFile file) throws IOException {
 		var fileNames = new StringBuilder();
@@ -32,8 +27,54 @@ public class UploadController {
 		Files.write(fileNameAndPath, file.getBytes());
 
 		var ocrResponse = RequestOcrRun(fileNameAndPath.toString());
+		var colorResponse = RequestColorRun(fileNameAndPath.toString());
+		var shapeResponse = RequestShapeRun(fileNameAndPath.toString());
 
-		return new ResponseEntity("<b>Prediction: </b>" + ocrResponse, HttpStatus.OK);
+		StringBuilder str = new StringBuilder();
+
+		str.append("<b>Prediction:</b>");
+		str.append("</br>");
+		str.append("<b>Text:</b>");
+		str.append("</br>");
+		str.append("<i>");
+		str.append(ocrResponse);
+		str.append("<i>");
+		str.append("</br>");
+		str.append("<b>Color:</b>");
+		str.append("</br>");
+		str.append("<i>");
+		str.append(colorResponse);
+		str.append("<i>");
+		str.append("</br>");
+		str.append("<b>Shape:</b>");
+		str.append("</br>");
+		str.append("<i>");
+		str.append(shapeResponse);
+		str.append("<i>");
+		str.append("</br>");
+
+		return new ResponseEntity(str.toString(), HttpStatus.OK);
+	}
+
+	private String RequestOcrRun(String fileLocation) {
+
+		var endpoint = "get_pill_imprint_predictions/";
+
+		return getResponseInferenceString(fileLocation, endpoint);
+	}
+
+	private String RequestShapeRun(String fileLocation) {
+
+		var endpoint = "get_pill_shape_predictions/";
+
+		return getResponseInferenceString(fileLocation, endpoint);
+	}
+
+	private String RequestColorRun(String fileLocation) {
+
+		var endpoint = "get_pill_color_predictions/";
+
+		return getResponseInferenceString(fileLocation, endpoint);
 	}
 
 	class Request {
@@ -43,12 +84,12 @@ public class UploadController {
 		String input_file_location;
 	}
 
-	private String RequestOcrRun(String fileLocation) {
+	private static String getResponseInferenceString(String fileLocation, String endpoint) {
 		var formattedFileLocation = fileLocation.replace('\\', '/');
 
 		RestTemplate restTemplate = new RestTemplate();
 
-		var url = "http://localhost:7001/get_pill_imprint_predictions/";
+		var url = "http://localhost:7001/" + endpoint;
 		var requestJson = "{\"input_file_location\":\"" + formattedFileLocation + "\"}";
 		var headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
@@ -59,9 +100,6 @@ public class UploadController {
 		System.out.println(result);
 
 		return result;
-
 	}
-
-
 
 }

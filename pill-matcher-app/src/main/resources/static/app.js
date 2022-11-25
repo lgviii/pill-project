@@ -17,14 +17,14 @@ let stream = null;
 function streamVideoFeed() {
   constraints.video = {
     width: {
-      min: 600,
-      ideal: 600,
-      max: 600,
+      min: 800,
+      ideal: 800,
+      max: 800,
     },
     height: {
-      min: 600,
-      ideal: 600,
-      max: 600,
+      min: 800,
+      ideal: 800,
+      max: 800,
     },
     facingMode: shouldFaceUser ? "user" : "environment",
   };
