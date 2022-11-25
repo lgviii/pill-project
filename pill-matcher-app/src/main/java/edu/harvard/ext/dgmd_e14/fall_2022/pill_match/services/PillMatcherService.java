@@ -12,6 +12,8 @@ import java.util.Map;
 @Validated
 public interface PillMatcherService {
 
+    Collection<ImageModelOutput> formatServiceResponse(String ocrResponse, String colorResponse, String shapeResponse);
+
     /**
      * Factor used to reduce the accuracy when matching pills that should have an imprint, if no predicted imprint
      * was found in the photo.
@@ -50,6 +52,7 @@ public interface PillMatcherService {
      */
     @NotNull
     Map<Pill, Double> findMatchingPills(@NotNull @NotEmpty Collection<ImageModelOutput> modelOutputs);
+
 
     /**
      * <p>

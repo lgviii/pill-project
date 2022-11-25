@@ -1,6 +1,9 @@
 package edu.harvard.ext.dgmd_e14.fall_2022.pill_match.controller;
 
 
+import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.ImageModelOutput;
+import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.services.PillMatcherService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,12 +14,15 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Collection;
 
 @Controller
 public class UploadController {
 
 //	public static String UPLOAD_DIRECTORY = System.getProperty("user.dir") + "/photos";
 
+	@Autowired
+	private PillMatcherService pillMatcherService;
 	public static String UPLOAD_DIRECTORY = "C:/Users/lgvii/Desktop/pills";
 
 	@PostMapping("/upload")
@@ -29,6 +35,9 @@ public class UploadController {
 		var ocrResponse = RequestOcrRun(fileNameAndPath.toString());
 		var colorResponse = RequestColorRun(fileNameAndPath.toString());
 		var shapeResponse = RequestShapeRun(fileNameAndPath.toString());
+
+		var formattedResponse = pillMatcherService.formatServiceResponse(ocrResponse, colorResponse, shapeResponse);
+		var pillPrediction = pillMatcherService.findMatchingPills(formattedResponse);
 
 		StringBuilder str = new StringBuilder();
 
@@ -50,6 +59,12 @@ public class UploadController {
 		str.append("</br>");
 		str.append("<i>");
 		str.append(shapeResponse);
+		str.append("<i>");
+		str.append("</br>");
+		str.append("<b>Final Pill Prediction:</b>");
+		str.append("</br>");
+		str.append("<i>");
+		str.append(pillPrediction.toString());
 		str.append("<i>");
 		str.append("</br>");
 

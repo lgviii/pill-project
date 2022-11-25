@@ -27,3 +27,27 @@ The other SQL scripts are meant for use in creating and filling the database to 
 GenericDrug is separated into its own table since there are multiple pills from different labelers that contain the same drug.  The idea is that this could (potentially) be used as a reach goal to allow refining the list of possible pill matches by user input of the medications they take.
 
 Ndc is separated into its own table from necessity, because an NDC may consist of multiple pills, each identified by the Part number within that NDC.
+
+## SQL Commands
+### To run SQL scripts on the CLI on Windows for app setup:
+
+`mysql -h {hostname} -u username -p {databasename}`
+
+i.e.
+`mysql -h localhost -u pill -p pilldb`
+
+database password can be found in the application.properties
+
+i.e. `p1llZ`
+
+See a list of the database:
+`show databases`
+
+Set a database for use:
+`use pilldb`
+
+Load a SQL file:
+`source C:\dev\Classes\DGMD14\pill-project\sql-scripts\pilldb_genericdrug.sql`
+
+## Run project
+The project is setup for **Intellij**. After loading the application in Intelli, load the SQL scripts, and press the play button.

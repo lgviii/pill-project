@@ -7,11 +7,9 @@ import org.apache.commons.text.similarity.LevenshteinDistance;
 import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +24,43 @@ public class PillMatcherServiceImpl implements PillMatcherService {
     public PillMatcherServiceImpl(PillRepository pillRepository) {
         this.levenshteinDistance = new LevenshteinDistance();
         this.pillRepository = pillRepository;
+    }
+
+    @Override
+    public Collection<ImageModelOutput> formatServiceResponse(String ocrResponse, String colorResponse, String shapeResponse) {
+        var imageModelOutputList = new ArrayList<ImageModelOutput>();
+        var imageModelOutput = new ImageModelOutput();
+
+        var ocrStringList = ocrResponse.split(";");
+        imageModelOutput.setImprintPredictions(Arrays.asList(ocrStringList));
+
+        colorResponse = colorResponse.substring(1, colorResponse.length() - 1);
+        var colorList = colorResponse.split("\\)\\(");
+
+
+        var colorModelMatches = new HashMap<String, Double>();
+
+        final Pattern patternText = Pattern.compile("[a-zA-Z]*", Pattern.CASE_INSENSITIVE);
+        final Pattern patternDigit = Pattern.compile("[0-9]*\\.[0-9]+", Pattern.CASE_INSENSITIVE);
+        for (String color: colorList) {
+            final Matcher matcherText = patternText.matcher(color);
+            matcherText.find();
+            var colorTitle = matcherText.group(0);
+            colorTitle = color.replace("'", "");
+
+            final Matcher matcherDigit = patternDigit.matcher(color);
+            matcherDigit.find();
+            var colorDigit = matcherDigit.group(0);
+
+
+            colorModelMatches.put(colorTitle, Double.parseDouble(colorDigit));
+        }
+        imageModelOutput.setColorModelMatches(colorModelMatches);
+
+        
+        imageModelOutputList.add(imageModelOutput);
+
+        return imageModelOutputList;
     }
 
     @Override
