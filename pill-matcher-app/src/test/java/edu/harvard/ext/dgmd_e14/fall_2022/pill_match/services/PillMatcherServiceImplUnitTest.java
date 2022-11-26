@@ -40,6 +40,13 @@ class PillMatcherServiceImplUnitTest {
     class CheckPredictionGroupTests {
 
         @Test
+        void doubleText_ExactMatches() {
+            double result =
+                    service.checkPredictionGroup("advil", Arrays.asList("Advil", "test"));
+            assertThat(result, is(1.0));
+        }
+
+        @Test
         void checkPredictionGroup_ExactMatches() {
             double result =
                     service.checkPredictionGroup("TEST;400mg", Arrays.asList("400mg", "test"));
@@ -149,6 +156,9 @@ class PillMatcherServiceImplUnitTest {
 
             var result = service.formatServiceResponse(tempOcr, tempColor, tempShape);
 
-            assertThat(result.isEmpty(), is(false));
+            var resultItem = result.stream().findFirst().get();
+            assertThat(resultItem.getColorModelMatches().size(), is(12));
+            assertThat(resultItem.getShapeModelMatches().size(), is(13));
+            assertThat(resultItem.getImprintPredictions().size(), is(16));
         }
 }

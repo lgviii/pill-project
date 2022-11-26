@@ -8,8 +8,6 @@ import org.springframework.stereotype.Service;
 
 import javax.inject.Inject;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,39 +26,38 @@ public class PillMatcherServiceImpl implements PillMatcherService {
 
     @Override
     public Collection<ImageModelOutput> formatServiceResponse(String ocrResponse, String colorResponse, String shapeResponse) {
-        var imageModelOutputList = new ArrayList<ImageModelOutput>();
         var imageModelOutput = new ImageModelOutput();
 
-        var ocrStringList = ocrResponse.split(";");
-        imageModelOutput.setImprintPredictions(Arrays.asList(ocrStringList));
 
-        colorResponse = colorResponse.substring(1, colorResponse.length() - 1);
-        var colorList = colorResponse.split("\\)\\(");
+        var ocrStringList = new ArrayList<String>();
 
-
-        var colorModelMatches = new HashMap<String, Double>();
-
-        final Pattern patternText = Pattern.compile("[a-zA-Z]*", Pattern.CASE_INSENSITIVE);
-        final Pattern patternDigit = Pattern.compile("[0-9]*\\.[0-9]+", Pattern.CASE_INSENSITIVE);
-        for (String color: colorList) {
-            final Matcher matcherText = patternText.matcher(color);
-            matcherText.find();
-            var colorTitle = matcherText.group(0);
-            colorTitle = color.replace("'", "");
-
-            final Matcher matcherDigit = patternDigit.matcher(color);
-            matcherDigit.find();
-            var colorDigit = matcherDigit.group(0);
-
-
-            colorModelMatches.put(colorTitle, Double.parseDouble(colorDigit));
+        var ocrStringListSemiColonSplit = ocrResponse.split(";");
+        for (var substring : ocrStringListSemiColonSplit) {
+            ocrStringList.addAll(Arrays.asList(substring.split("\n")));
         }
-        imageModelOutput.setColorModelMatches(colorModelMatches);
 
-        
+
+        imageModelOutput.setImprintPredictions(ocrStringList);
+        imageModelOutput.setColorModelMatches(getResponseMap(colorResponse));
+        imageModelOutput.setShapeModelMatches(getResponseMap(shapeResponse));
+
+        var imageModelOutputList = new ArrayList<ImageModelOutput>();
         imageModelOutputList.add(imageModelOutput);
 
         return imageModelOutputList;
+    }
+
+    private static HashMap<String, Double> getResponseMap(String response) {
+        response = response.substring(1, response.length() - 1);
+        var trimmedList = response.split("\\)\\(");
+
+        var responseMap = new HashMap<String, Double>();
+
+        for (String attribute: trimmedList) {
+            var attributeSubstrings = attribute.replace("'","").replace(" ", "").split(",");
+            responseMap.put(attributeSubstrings[0], Double.parseDouble(attributeSubstrings[1]));
+        }
+        return responseMap;
     }
 
     @Override
@@ -73,7 +70,7 @@ public class PillMatcherServiceImpl implements PillMatcherService {
             if (modelOutput.getColorModelMatches() != null && !modelOutput.getColorModelMatches().isEmpty()) {
                 colorMatchMap = modelOutput.getColorModelMatches();
                 shapeMatchMap = modelOutput.getShapeModelMatches();
-                break;
+                break; // Question: Does this only loop once?
             }
         }
 
@@ -117,19 +114,25 @@ public class PillMatcherServiceImpl implements PillMatcherService {
         }
         else {
             // If predictions WERE found, first remove all pills that don't have an imprint
-            for (Pill pill : colorShapePillMatchMap.keySet()) {
-                if (!pill.hasImprint()) {
-                    colorShapePillMatchMap.remove(pill);
-                }
-            }
+            var filteredColorShapePillMatchMap =  colorShapePillMatchMap.entrySet().stream()
+                    .filter(entry -> entry.getKey().hasImprint())
+                    .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
+
+//            for (var entry : colorShapePillMatchMap.entrySet()) {
+//                var pill = entry.getKey();
+//                if (!pill.hasImprint()) {
+//                    colorShapePillMatchMap.remove(pill);
+//                }
+//            }
+
             Map<Pill, Double> imprintMatches = matchPillsByPredictedImprints(predictionGroups,
-                                                                             colorShapePillMatchMap.keySet());
+                                                                             filteredColorShapePillMatchMap.keySet());
             // Build a new final match list using the text accuracy from the imprint matches and the color/shape
             // accuracy from the color/shape matches
-            Map<Pill, Double> finalMatchMap = new HashMap<>();
-            for (Map.Entry<Pill, Double> imprintEntry : imprintMatches.entrySet()) {
+            var finalMatchMap = new HashMap<Pill, Double>();
+            for (var imprintEntry : imprintMatches.entrySet()) {
                 Pill pill = imprintEntry.getKey();
-                finalMatchMap.put(pill, imprintEntry.getValue() * colorShapePillMatchMap.get(pill));
+                finalMatchMap.put(pill, imprintEntry.getValue() * filteredColorShapePillMatchMap.get(pill));
             }
             return finalMatchMap;
         }
@@ -140,10 +143,11 @@ public class PillMatcherServiceImpl implements PillMatcherService {
             return new ArrayList<>(modelOutputMap.keySet());
         }
 
-        List<Map.Entry<String, Double>> sortedOutputMap = new ArrayList<>(modelOutputMap.entrySet());
+        var sortedOutputMap = new ArrayList<>(modelOutputMap.entrySet());
         sortedOutputMap.sort(Map.Entry.comparingByValue());
 
-        return sortedOutputMap.subList(0, MODEL_OUTPUT_LIMIT)
+        var endOfArray = sortedOutputMap.size() - 1;
+        return sortedOutputMap.subList(endOfArray- MODEL_OUTPUT_LIMIT, endOfArray)
                               .stream().map(Map.Entry::getKey).collect(Collectors.toList());
     }
 
@@ -248,7 +252,12 @@ public class PillMatcherServiceImpl implements PillMatcherService {
         int matchingIndex = -1;
         double bestAccuracy = 0.0;
         for (int i = 0; i < imprintSections.size(); i++) {
-            String section = imprintSections.get(i);
+            String section = imprintSections.get(i).toLowerCase();
+
+            if (section.contains(prediction)){
+                var temp = "";
+            }
+
             int max = Math.max(prediction.length(), section.length());
             // Only calculate the distance if either prediction or section has > 1 character, since both having only
             // 1 character can result in a misleadingly low distance score

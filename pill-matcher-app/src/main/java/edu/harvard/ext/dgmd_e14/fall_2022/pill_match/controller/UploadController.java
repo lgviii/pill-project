@@ -37,7 +37,7 @@ public class UploadController {
 		var shapeResponse = RequestShapeRun(fileNameAndPath.toString());
 
 		var formattedResponse = pillMatcherService.formatServiceResponse(ocrResponse, colorResponse, shapeResponse);
-		var pillPrediction = pillMatcherService.findMatchingPills(formattedResponse);
+		var pillPredictions = pillMatcherService.findMatchingPills(formattedResponse);
 
 		StringBuilder str = new StringBuilder();
 
@@ -47,26 +47,64 @@ public class UploadController {
 		str.append("</br>");
 		str.append("<i>");
 		str.append(ocrResponse);
-		str.append("<i>");
+		str.append("</i>");
 		str.append("</br>");
 		str.append("<b>Color:</b>");
 		str.append("</br>");
 		str.append("<i>");
 		str.append(colorResponse);
-		str.append("<i>");
+		str.append("</i>");
 		str.append("</br>");
 		str.append("<b>Shape:</b>");
 		str.append("</br>");
 		str.append("<i>");
 		str.append(shapeResponse);
-		str.append("<i>");
+		str.append("</i>");
 		str.append("</br>");
-		str.append("<b>Final Pill Prediction:</b>");
 		str.append("</br>");
-		str.append("<i>");
-		str.append(pillPrediction.toString());
-		str.append("<i>");
+		str.append("<b>Final Pill Prediction (we believe it's one of the following):</b>");
 		str.append("</br>");
+		str.append("</br>");
+
+		for (var entry: pillPredictions.entrySet()) {
+			str.append("<i>Name: </i>");
+			str.append("<b>");
+			str.append(entry.getKey().getProprietaryName());
+			str.append("</b>");
+			str.append("</br>");
+
+			str.append("<i>Labeling Originator: </i>");
+			str.append("<b>");
+			str.append(entry.getKey().getLabeledBy());
+			str.append("</b>");
+			str.append("</br>");
+
+			str.append("<i>Prediction Value: </i>");
+			str.append("<b>");
+			str.append(entry.getValue());
+			str.append("</b>");
+			str.append("</br>");
+
+			str.append("<i>Imprint: </i>");
+			str.append("<b>");
+			str.append(entry.getKey().getImprint());
+			str.append("%</b>");
+			str.append("</br>");
+
+			str.append("<i>Shape: </i>");
+			str.append("<b>");
+			str.append(entry.getKey().getShape());
+			str.append("%</b>");
+			str.append("</br>");
+
+			str.append("<i>Color: </i>");
+			str.append("<b>");
+			str.append(entry.getKey().getColors());
+			str.append("%</b>");
+			str.append("</br>");
+
+			str.append("</br>");
+		}
 
 		return new ResponseEntity(str.toString(), HttpStatus.OK);
 	}
