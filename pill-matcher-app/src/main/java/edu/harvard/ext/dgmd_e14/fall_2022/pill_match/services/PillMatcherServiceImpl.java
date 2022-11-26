@@ -25,42 +25,6 @@ public class PillMatcherServiceImpl implements PillMatcherService {
     }
 
     @Override
-    public Collection<ImageModelOutput> formatServiceResponse(String ocrResponse, String colorResponse, String shapeResponse) {
-        var imageModelOutput = new ImageModelOutput();
-
-
-        var ocrStringList = new ArrayList<String>();
-
-        var ocrStringListSemiColonSplit = ocrResponse.split(";");
-        for (var substring : ocrStringListSemiColonSplit) {
-            ocrStringList.addAll(Arrays.asList(substring.split("\n")));
-        }
-
-
-        imageModelOutput.setImprintPredictions(ocrStringList);
-        imageModelOutput.setColorModelMatches(getResponseMap(colorResponse));
-        imageModelOutput.setShapeModelMatches(getResponseMap(shapeResponse));
-
-        var imageModelOutputList = new ArrayList<ImageModelOutput>();
-        imageModelOutputList.add(imageModelOutput);
-
-        return imageModelOutputList;
-    }
-
-    private static HashMap<String, Double> getResponseMap(String response) {
-        response = response.substring(1, response.length() - 1);
-        var trimmedList = response.split("\\)\\(");
-
-        var responseMap = new HashMap<String, Double>();
-
-        for (String attribute: trimmedList) {
-            var attributeSubstrings = attribute.replace("'","").replace(" ", "").split(",");
-            responseMap.put(attributeSubstrings[0], Double.parseDouble(attributeSubstrings[1]));
-        }
-        return responseMap;
-    }
-
-    @Override
     public Map<Pill, Double> findMatchingPills(Collection<ImageModelOutput> modelOutputs) {
         // Pull the color and shape model outputs - just use the first set we find in the collection
         Map<String, Double> colorMatchMap = null;
