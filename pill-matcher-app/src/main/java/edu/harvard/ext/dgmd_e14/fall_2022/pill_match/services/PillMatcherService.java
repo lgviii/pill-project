@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Validated
@@ -20,7 +21,7 @@ public interface PillMatcherService {
 
     /**
      * <p>
-     * Attempts to find all pills matching the specified colors, shapes, and predicted imprint text groups.
+     * Attempts to find the top 10 pills matching the specified colors, shapes, and predicted imprint text groups.
      * </p><p>
      * This is the method that should be called by master service/REST controller once all the models have been run
      * on a pill image.  The returned Map will include ALL possible pill matches based on the specified colors,
@@ -45,11 +46,11 @@ public interface PillMatcherService {
      *                     include at least one image with outputs from all models (shape, color, imprint), may
      *                     include an additional image with outputs from just the imprint model in case there's an
      *                     imprint on both sides of the pill
-     * @return Map containing each Pill that has at least some match across the assorted predictions, linked with the
-     *         combined probability that the match is correct
+     * @return Map containing top 10 Pills that have at least some match across the assorted predictions, linked with
+     *         the combined probability that the match is correct, ordered by probability from most to least
      */
     @NotNull
-    Map<Pill, Double> findMatchingPills(@NotNull @NotEmpty Collection<ImageModelOutput> modelOutputs);
+    LinkedHashMap<Pill, Double> findMatchingPills(@NotNull @NotEmpty Collection<ImageModelOutput> modelOutputs);
 
 
     /**

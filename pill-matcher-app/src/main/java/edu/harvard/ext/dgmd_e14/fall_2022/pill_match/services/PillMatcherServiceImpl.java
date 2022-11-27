@@ -15,6 +15,8 @@ public class PillMatcherServiceImpl implements PillMatcherService {
 
     private static final int MODEL_OUTPUT_LIMIT = 2;
 
+    private static final int PILL_MATCH_LIMIT = 10;
+
     private final LevenshteinDistance levenshteinDistance;
     private final PillRepository pillRepository;
 
@@ -25,7 +27,7 @@ public class PillMatcherServiceImpl implements PillMatcherService {
     }
 
     @Override
-    public Map<Pill, Double> findMatchingPills(Collection<ImageModelOutput> modelOutputs) {
+    public LinkedHashMap<Pill, Double> findMatchingPills(Collection<ImageModelOutput> modelOutputs) {
         // Pull the color and shape model outputs - just use the first set we find in the collection
         Map<String, Double> colorMatchMap = null;
         Map<String, Double> shapeMatchMap = null;
@@ -60,7 +62,7 @@ public class PillMatcherServiceImpl implements PillMatcherService {
 
         // If there aren't any pills that match the provided color/shape combinations, stop here
         if (colorShapePillMatchMap.isEmpty()) {
-            return colorShapePillMatchMap;
+            return limitPillMatchOutput(colorShapePillMatchMap);
         }
 
         List<String> predictionGroups = combineImprintOutputs(modelOutputs);
@@ -74,7 +76,7 @@ public class PillMatcherServiceImpl implements PillMatcherService {
                     pillEntry.setValue(pillEntry.getValue() * MISSING_IMPRINT_FACTOR);
                 }
             }
-            return colorShapePillMatchMap;
+            return limitPillMatchOutput(colorShapePillMatchMap);
         }
         else {
             // If predictions WERE found, first remove all pills that don't have an imprint
@@ -98,7 +100,7 @@ public class PillMatcherServiceImpl implements PillMatcherService {
                 Pill pill = imprintEntry.getKey();
                 finalMatchMap.put(pill, imprintEntry.getValue() * filteredColorShapePillMatchMap.get(pill));
             }
-            return finalMatchMap;
+            return limitPillMatchOutput(finalMatchMap);
         }
     }
 
@@ -108,11 +110,21 @@ public class PillMatcherServiceImpl implements PillMatcherService {
         }
 
         var sortedOutputMap = new ArrayList<>(modelOutputMap.entrySet());
-        sortedOutputMap.sort(Map.Entry.comparingByValue());
+        sortedOutputMap.sort(Map.Entry.comparingByValue(Comparator.reverseOrder()));
 
-        var endOfArray = sortedOutputMap.size();
-        return sortedOutputMap.subList(endOfArray - MODEL_OUTPUT_LIMIT, endOfArray)
+        return sortedOutputMap.subList(0, MODEL_OUTPUT_LIMIT)
                               .stream().map(Map.Entry::getKey).collect(Collectors.toList());
+    }
+
+    LinkedHashMap<Pill, Double> limitPillMatchOutput(Map<Pill, Double> pillMatchMap) {
+        var sortedOutputMap = new ArrayList<>(pillMatchMap.entrySet());
+        sortedOutputMap.sort((Map.Entry.comparingByValue(Comparator.reverseOrder())));
+
+        var result = new LinkedHashMap<Pill, Double>();
+        for (Map.Entry<Pill, Double> entry : sortedOutputMap.subList(0, PILL_MATCH_LIMIT)) {
+            result.put(entry.getKey(), entry.getValue());
+        }
+        return result;
     }
 
     List<String> combineImprintOutputs(Collection<ImageModelOutput> imageModelOutputs) {

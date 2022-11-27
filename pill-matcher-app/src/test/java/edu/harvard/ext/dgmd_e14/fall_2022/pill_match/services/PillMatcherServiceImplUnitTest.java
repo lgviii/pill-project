@@ -1,5 +1,7 @@
 package edu.harvard.ext.dgmd_e14.fall_2022.pill_match.services;
 
+import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities.Ndc;
+import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities.Pill;
 import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.repositories.PillRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -11,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -26,6 +29,15 @@ class PillMatcherServiceImplUnitTest {
     @BeforeEach
     void setUp() {
         service = new PillMatcherServiceImpl(pillRepositoryMock);
+    }
+
+    static Pill createPill(String ndc11, int part) {
+        Ndc ndc = new Ndc();
+        ndc.setNdc11(ndc11);
+        Pill pill = new Pill();
+        pill.setNdc(ndc);
+        pill.setPart(part);
+        return pill;
     }
 
     @Test
@@ -57,7 +69,52 @@ class PillMatcherServiceImplUnitTest {
         map.put("WHITE", 4.558284416589231e-09);
 
         var result = service.limitModelOutput(map);
-        assertThat(result, contains("TURQUOISE", "BLUE"));
+        assertThat(result, contains("BLUE", "TURQUOISE"));
+    }
+
+    @Test
+    void limitPillMatchOutput() {
+        var map = new HashMap<Pill, Double>();
+        map.put(createPill("11110001101", 1), 0.37190);     // 7
+        map.put(createPill("11110001102", 1), 0.24715);     // 9
+        map.put(createPill("11110001103", 1), 0.6092);      // 3
+        map.put(createPill("11110001104", 1), 3e-6);
+        map.put(createPill("11110001105", 1), 0.3158);      // 8
+        map.put(createPill("11110001106", 1), 0.8571);      // 2
+        map.put(createPill("11110001107", 1), 0.0147);
+        map.put(createPill("11110001108", 1), 2.58191e-4);
+        map.put(createPill("11110001109", 1), 0.5817);      // 4
+        map.put(createPill("11110001110", 1), 4.247e-4);
+        map.put(createPill("11110001111", 1), 0.3809);      // 6
+        map.put(createPill("11110001112", 1), 0.99301);     // 1
+        map.put(createPill("11110001113", 1), 9.17501e-5);
+        map.put(createPill("11110001114", 1), 0.57194);     // 5
+        map.put(createPill("11110001115", 1), 0.03155);     // 10
+
+        var result = service.limitPillMatchOutput(map);
+        assertThat(result.size(), is(10));
+        assertThat(result, allOf(hasEntry(createPill("11110001112", 1), 0.99301),
+                                 hasEntry(createPill("11110001106", 1), 0.8571),
+                                 hasEntry(createPill("11110001103", 1), 0.6092),
+                                 hasEntry(createPill("11110001109", 1), 0.5817),
+                                 hasEntry(createPill("11110001114", 1), 0.57194),
+                                 hasEntry(createPill("11110001111", 1), 0.3809),
+                                 hasEntry(createPill("11110001101", 1), 0.37190),
+                                 hasEntry(createPill("11110001105", 1), 0.3158),
+                                 hasEntry(createPill("11110001102", 1), 0.24715),
+                                 hasEntry(createPill("11110001115", 1), 0.03155)));
+        var expResult = new LinkedHashMap<Pill, Double>();
+        expResult.put(createPill("11110001112", 1), 0.99301);     // 1
+        expResult.put(createPill("11110001106", 1), 0.8571);      // 2
+        expResult.put(createPill("11110001103", 1), 0.6092);      // 3
+        expResult.put(createPill("11110001109", 1), 0.5817);      // 4
+        expResult.put(createPill("11110001114", 1), 0.57194);     // 5
+        expResult.put(createPill("11110001111", 1), 0.3809);      // 6
+        expResult.put(createPill("11110001101", 1), 0.37190);     // 7
+        expResult.put(createPill("11110001105", 1), 0.3158);      // 8
+        expResult.put(createPill("11110001102", 1), 0.24715);     // 9
+        expResult.put(createPill("11110001115", 1), 0.03155);     // 10
+        assertThat(result, is(expResult));
     }
 
     @Test
