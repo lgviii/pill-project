@@ -29,6 +29,9 @@ public class IntTest {
     @Autowired
     private PredictionService predictionService;
 
+    @Autowired
+    private PillMatcherService pillMatcherService;
+
     private String testFilePath = "C:\\Users\\lgvii\\Desktop\\pills\\all_square\\";
 
     HashMap<String, Integer> matchPillsByPredictedImprints() throws IOException {
@@ -196,9 +199,8 @@ public class IntTest {
             stringBuilder.append("</br>");
 
 
-            var imprintFromDb =  pillFromDb.get().getImprint() == null ? "" : pillFromDb.get().getImprint();
             stringBuilder.append("<b>Does imprint predicted imprint match actual exactly?: </b>");
-            if (textOcrPredicted.equalsIgnoreCase(imprintFromDb)) {
+            if (pillMatcherService.doesPredictionMatchImprint(imprintPredictionsList, pillFromDb.get().getImprint())) {
                 imprintExactMatch++;
                 stringBuilder.append("<i style=\"color: blue;\">**YES MATCH*** </i>");
                 stringBuilder.append("</br>");
