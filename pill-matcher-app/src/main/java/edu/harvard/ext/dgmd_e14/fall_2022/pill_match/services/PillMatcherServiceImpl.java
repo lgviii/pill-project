@@ -110,8 +110,8 @@ public class PillMatcherServiceImpl implements PillMatcherService {
         var sortedOutputMap = new ArrayList<>(modelOutputMap.entrySet());
         sortedOutputMap.sort(Map.Entry.comparingByValue());
 
-        var endOfArray = sortedOutputMap.size() - 1;
-        return sortedOutputMap.subList(endOfArray- MODEL_OUTPUT_LIMIT, endOfArray)
+        var endOfArray = sortedOutputMap.size();
+        return sortedOutputMap.subList(endOfArray - MODEL_OUTPUT_LIMIT, endOfArray)
                               .stream().map(Map.Entry::getKey).collect(Collectors.toList());
     }
 

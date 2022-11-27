@@ -10,9 +10,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 
 @ExtendWith(MockitoExtension.class)
 class PillMatcherServiceImplUnitTest {
@@ -33,6 +34,34 @@ class PillMatcherServiceImplUnitTest {
 
     @Test
     void checkAllPredictionsAgainstImprint() {
+    }
+
+    @Test
+    void findMatchingPills() {
+    }
+
+    @Test
+    void limitModelOutput() {
+        var map = new HashMap<String, Double>();
+        map.put("BLUE", 0.9996551275253296);
+        map.put("TURQUOISE", 0.0003351218765601516);
+        map.put("GREEN", 8.499319847032893e-06);
+        map.put("RED", 6.21621040863829e-07);
+        map.put("ORANGE", 2.979411419801181e-07);
+        map.put("BROWN", 1.2477769928409543e-07);
+        map.put("GRAY", 4.4911708130257466e-08);
+        map.put("PURPLE", 4.1617742141397684e-08);
+        map.put("BLACK", 3.7359097149192166e-08);
+        map.put("PINK", 2.7760169274415603e-08);
+        map.put("YELLOW", 5.409113157384127e-09);
+        map.put("WHITE", 4.558284416589231e-09);
+
+        var result = service.limitModelOutput(map);
+        assertThat(result, contains("TURQUOISE", "BLUE"));
+    }
+
+    @Test
+    void combineImprintOutputs() {
     }
 
     @Nested
