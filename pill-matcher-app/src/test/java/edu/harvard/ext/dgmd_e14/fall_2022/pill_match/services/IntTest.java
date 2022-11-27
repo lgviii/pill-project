@@ -57,7 +57,7 @@ public class IntTest {
         var selectedPillEntries = new ArrayList<Map.Entry<String, Integer>>();
         var usedIds = new ArrayList<Integer>();
 
-        int numberRandSample = 3;
+        int numberRandSample = 100;
 
         for (int i = 0; i < numberRandSample; i++) {
             var randomIndex = rand.nextInt(allPillEntries.size());
@@ -196,13 +196,14 @@ public class IntTest {
             stringBuilder.append("</br>");
 
 
+            var imprintFromDb =  pillFromDb.get().getImprint() == null ? "" : pillFromDb.get().getImprint();
             stringBuilder.append("<b>Does imprint predicted imprint match actual exactly?: </b>");
-            if (textOcrPredicted.toLowerCase().equals(pillFromDb.get().getImprint().toLowerCase())) {
+            if (textOcrPredicted.equalsIgnoreCase(imprintFromDb)) {
                 imprintExactMatch++;
                 stringBuilder.append("<i style=\"color: blue;\">**YES MATCH*** </i>");
                 stringBuilder.append("</br>");
             } else {
-                stringBuilder.append("<i style=\"color: orange;\">***NO MATCH***</i>");
+                stringBuilder.append("<i style=\"color: orange;\">***NO TARGET MATCH***</i>");
                 stringBuilder.append("</br>");
             }
 
@@ -216,7 +217,7 @@ public class IntTest {
             stringBuilder.append("</i>");
             stringBuilder.append("</br>");
 
-            var matchesTopShape = topShapePrediction.getKey().toLowerCase().equals(pillFromDb.get().getShape().toLowerCase());
+            var matchesTopShape = topShapePrediction.getKey().equalsIgnoreCase(pillFromDb.get().getShape());
 
             stringBuilder.append("<b>Does top shape prediction match actual?: </b>");
             if (matchesTopShape) {
@@ -224,7 +225,7 @@ public class IntTest {
                 stringBuilder.append("<i style=\"color: blue;\">**YES MATCH*** </i>");
                 stringBuilder.append("</br>");
             } else {
-                stringBuilder.append("<i style=\"color: orange;\">***NO MATCH***</i>");
+                stringBuilder.append("<i style=\"color: orange;\">***NO TARGET MATCH***</i>");
                 stringBuilder.append("</br>");
             }
 
@@ -238,11 +239,11 @@ public class IntTest {
             stringBuilder.append("</i>");
             stringBuilder.append("</br>");
 
-            var topColorToLower = topColorPrediction.getKey().toLowerCase();
+            var topColor = topColorPrediction.getKey();
             var pillFromDbList = pillFromDb.get().getColors().stream().toList();
-            var firstColorToLower = pillFromDbList.size() > 0 ? pillFromDbList.get(0).toLowerCase() : "";
-            var secondColorToLower = pillFromDbList.size() > 1 ? pillFromDbList.get(1).toLowerCase() : "";
-            var matchesTopColor = topColorToLower.equals(firstColorToLower) || topColorToLower.equals(secondColorToLower);
+            var firstColor = pillFromDbList.size() > 0 ? pillFromDbList.get(0) : "";
+            var secondColor = pillFromDbList.size() > 1 ? pillFromDbList.get(1) : "";
+            var matchesTopColor = topColor.equalsIgnoreCase(firstColor) || topColor.equalsIgnoreCase(secondColor);
 
             stringBuilder.append("<b>Does top shape prediction match actual at least partially?: </b>");
             if (matchesTopColor) {
@@ -250,11 +251,13 @@ public class IntTest {
                 stringBuilder.append("<i style=\"color: blue;\">**YES MATCH*** </i>");
                 stringBuilder.append("</br>");
             } else {
-                stringBuilder.append("<i style=\"color: orange;\">***NO MATCH***</i>");
+                stringBuilder.append("<i style=\"color: orange;\">***NO TARGET MATCH***</i>");
                 stringBuilder.append("</br>");
             }
 
             stringBuilder.append("</div>");
+
+            stringBuilder.append("<div style=\"border:2px solid Orange;\">");
 
             stringBuilder.append("</br>");
             stringBuilder.append("<h3><u>Pill Predictions</u></h3>");
@@ -267,7 +270,7 @@ public class IntTest {
 
             if (predictions.isEmpty())
             {
-                stringBuilder.append("<b>*NO PREDICTION can be made*</b>");
+                stringBuilder.append("<b style=\"color: white;background-color: purple\">*NO PREDICTION can be made*</b>");
             }
 
             for (var prediction : predictions) {
@@ -311,10 +314,10 @@ public class IntTest {
 
                     if (prediction.getKey().getImprint() != null && pillFromDb.get().getImprint().contains(prediction.getKey().getImprint())) {
                         imprintFound = true;
-                        stringBuilder.append("<i style=\"color: blue;\">**YES MATCH*** At least partial match found.</i>");
+                        stringBuilder.append("<i style=\"color: blue;\">***TARGET MATCH***</i>");
                         stringBuilder.append("</br>");
                     } else {
-                        stringBuilder.append("<i style=\"color: orange;\">***NO MATCH***: No full or partial match found.</i>");
+                        stringBuilder.append("<i style=\"color: orange;\">***NOT TARGET MATCH***</i>");
                         stringBuilder.append("</br>");
                     }
                 } else {
@@ -330,10 +333,10 @@ public class IntTest {
 
                 if (pillFromDb.get().getShape().equalsIgnoreCase(prediction.getKey().getShape())) {
                     shapeFound = true;
-                    stringBuilder.append("<i style=\"color: blue;\">**YES MATCH*** At least partial match found.</i>");
+                    stringBuilder.append("<i style=\"color: blue;\">***TARGET MATCH***</i>");
                     stringBuilder.append("</br>");
                 } else {
-                    stringBuilder.append("<i style=\"color: orange;\">***NO MATCH***: No full or partial match found.</i>");
+                    stringBuilder.append("<i style=\"color: orange;\">***NOT TARGET MATCH***</i>");
                     stringBuilder.append("</br>");
                 }
 
@@ -348,10 +351,10 @@ public class IntTest {
                     for (var expectedColor:pillFromDb.get().getColors()) {
                         if (expectedColor.toLowerCase().contains(color.toLowerCase())) {
                             colorFound = true;
-                            stringBuilder.append("<i style=\"color: blue;\">**YES MATCH*** At least partial match found.</i>");
+                            stringBuilder.append("<i style=\"color: blue;\">***TARGET MATCH***</i>");
                             stringBuilder.append("</br>");
                         } else {
-                            stringBuilder.append("<i style=\"color: orange;\">***NO MATCH***: No full or partial match found.</i>");
+                            stringBuilder.append("<i style=\"color: orange;\">***NOT TARGET MATCH***</i>");
                             stringBuilder.append("</br>");
                         }
                     }
@@ -365,9 +368,10 @@ public class IntTest {
                 stringBuilder.append("</br>");
                 stringBuilder.append("<b>Is this a correct match?</b>");
                 stringBuilder.append("<i>");
-                stringBuilder.append(isMatch ? "<i style=\"color: white;background-color:green;\"> YES PILL MATCH</i>" : "<i style=\"color: white;background-color:red;\"> NO PILL MATCH</i>");
+                stringBuilder.append(isMatch ? "<i style=\"color: white;background-color:green;\"> PILL MATCH</i>" : "<i style=\"color: white;background-color:red;\"> NO PILL MATCH</i>");
                 stringBuilder.append("</i>");
                 stringBuilder.append("</br>");
+                stringBuilder.append("</div>");
             }
             if (imprintFound) {
                 totalNumberCorrectAtLeastPartialImprintMatches++;
@@ -380,9 +384,10 @@ public class IntTest {
             }
         }
 
-            stringBuilder.append("<h3>Pill Prediction Stats</h3>");
-            stringBuilder.append("</br>");
-            stringBuilder.append("</br>");
+        stringBuilder.append("</br>");
+        stringBuilder.append("</br>");
+        stringBuilder.append("<h3 style=\"background-color:Orange; color:white;\">Pill Prediction Stats</h3>");
+
 
         stringBuilder.append("<b>Number of matched pills: </b>");
         stringBuilder.append("<i>");
