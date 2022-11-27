@@ -121,7 +121,10 @@ public class PillMatcherServiceImpl implements PillMatcherService {
         sortedOutputMap.sort((Map.Entry.comparingByValue(Comparator.reverseOrder())));
 
         var result = new LinkedHashMap<Pill, Double>();
-        for (Map.Entry<Pill, Double> entry : sortedOutputMap.subList(0, PILL_MATCH_LIMIT)) {
+
+        var sublist = sortedOutputMap.stream().count() > 10 ? sortedOutputMap.subList(0, PILL_MATCH_LIMIT) : sortedOutputMap;
+
+        for (Map.Entry<Pill, Double> entry : sublist) {
             result.put(entry.getKey(), entry.getValue());
         }
         return result;

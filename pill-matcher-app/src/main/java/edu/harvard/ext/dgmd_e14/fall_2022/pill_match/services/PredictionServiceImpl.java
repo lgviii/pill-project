@@ -128,15 +128,19 @@ public class PredictionServiceImpl implements PredictionService {
         return stringBuilder.toString();
     }
 
-    public Map<Pill, Double> getPredictions(Path fileNameAndPath) {
+    public Map<Pill, Double> getPredictions(Collection<ImageModelOutput> formattedResponse) {
+        var pillPredictions = pillMatcherService.findMatchingPills(formattedResponse);
+
+        return pillPredictions;
+    }
+
+    public Collection<ImageModelOutput> getFormattedResponse(Path fileNameAndPath) {
         var ocrResponse = RequestOcrRun(fileNameAndPath.toString());
         var colorResponse = RequestColorRun(fileNameAndPath.toString());
         var shapeResponse = RequestShapeRun(fileNameAndPath.toString());
 
         var formattedResponse = formatServiceResponse(ocrResponse, colorResponse, shapeResponse);
-        var pillPredictions = pillMatcherService.findMatchingPills(formattedResponse);
-
-        return pillPredictions;
+        return formattedResponse;
     }
 
     private String RequestOcrRun(String fileLocation) {
