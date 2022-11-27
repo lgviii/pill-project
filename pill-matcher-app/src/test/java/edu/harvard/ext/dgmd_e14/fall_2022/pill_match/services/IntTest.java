@@ -57,7 +57,7 @@ public class IntTest {
         var selectedPillEntries = new ArrayList<Map.Entry<String, Integer>>();
         var usedIds = new ArrayList<Integer>();
 
-        int numberRandSample = 10;
+        int numberRandSample = 3;
 
         for (int i = 0; i < numberRandSample; i++) {
             var randomIndex = rand.nextInt(allPillEntries.size());
@@ -82,7 +82,7 @@ public class IntTest {
 
         StringBuilder stringBuilder = new StringBuilder();
 
-        stringBuilder.append("<h1>Randomized Pill Prediction:</h1>");
+        stringBuilder.append("<h1>Randomized Pill Prediction: " + numberRandSample + " Pills</h1>");
         stringBuilder.append("</br>");
         stringBuilder.append("</br>");
 
@@ -128,12 +128,11 @@ public class IntTest {
 
             var predictions = predictionService.getPredictions(formattedResponse).entrySet();
 
-            stringBuilder.append("<h2>Pill #" + pillCounter + "</h3>");
             stringBuilder.append("</br>");
-            stringBuilder.append("</br>");
+            stringBuilder.append("<h2 style=\"background-color:DodgerBlue; color:white;\">Pill #" + pillCounter + "</h3>");
 
-            stringBuilder.append("<h3>Pill Database Properties</h3>");
-            stringBuilder.append("</br>");
+            stringBuilder.append("<div style=\"border:2px solid Tomato;\">");
+            stringBuilder.append("<h3><u>Pill Database Properties</u></h3>");
             stringBuilder.append("</br>");
 
             stringBuilder.append("<b>Photo File: </b>");
@@ -181,11 +180,33 @@ public class IntTest {
             stringBuilder.append("</i>");
             stringBuilder.append("</br>");
 
-            stringBuilder.append("</br>");
-            stringBuilder.append("<h3>Model Predictions</h3>");
-            stringBuilder.append("</br>");
+            stringBuilder.append("</div>");
+
+            stringBuilder.append("<div style=\"border:2px solid Orange;\">");
+
+            stringBuilder.append("<h3><u>Model Predictions</u></h3>");
             stringBuilder.append("</br>");
 
+            var imprintPredictionsList = predictionResponse.getImprintPredictions().stream().toList();
+            var textOcrPredicted = String.join("", imprintPredictionsList);
+            stringBuilder.append("<b>Text Predicted: </b>");
+            stringBuilder.append("<i>");
+            stringBuilder.append(textOcrPredicted);
+            stringBuilder.append("</i>");
+            stringBuilder.append("</br>");
+
+
+            stringBuilder.append("<b>Does imprint predicted imprint match actual exactly?: </b>");
+            if (textOcrPredicted.toLowerCase().equals(pillFromDb.get().getImprint().toLowerCase())) {
+                imprintExactMatch++;
+                stringBuilder.append("<i style=\"color: blue;\">**YES MATCH*** </i>");
+                stringBuilder.append("</br>");
+            } else {
+                stringBuilder.append("<i style=\"color: orange;\">***NO MATCH***</i>");
+                stringBuilder.append("</br>");
+            }
+
+            stringBuilder.append("</br>");
             stringBuilder.append("<b>Top Shape Predicted: </b>");
             stringBuilder.append("<i>");
             stringBuilder.append(topShapePrediction.getKey());
@@ -195,7 +216,7 @@ public class IntTest {
             stringBuilder.append("</i>");
             stringBuilder.append("</br>");
 
-            var matchesTopShape = topShapePrediction.getKey().toLowerCase() == pillFromDb.get().getShape().toLowerCase();
+            var matchesTopShape = topShapePrediction.getKey().toLowerCase().equals(pillFromDb.get().getShape().toLowerCase());
 
             stringBuilder.append("<b>Does top shape prediction match actual?: </b>");
             if (matchesTopShape) {
@@ -207,6 +228,7 @@ public class IntTest {
                 stringBuilder.append("</br>");
             }
 
+            stringBuilder.append("</br>");
             stringBuilder.append("<b>Top Color Predicted: </b>");
             stringBuilder.append("<i>");
             stringBuilder.append(topColorPrediction.getKey());
@@ -220,11 +242,11 @@ public class IntTest {
             var pillFromDbList = pillFromDb.get().getColors().stream().toList();
             var firstColorToLower = pillFromDbList.size() > 0 ? pillFromDbList.get(0).toLowerCase() : "";
             var secondColorToLower = pillFromDbList.size() > 1 ? pillFromDbList.get(1).toLowerCase() : "";
-            var matchesTopColor = topColorToLower == firstColorToLower || topColorToLower == secondColorToLower;
+            var matchesTopColor = topColorToLower.equals(firstColorToLower) || topColorToLower.equals(secondColorToLower);
 
             stringBuilder.append("<b>Does top shape prediction match actual at least partially?: </b>");
             if (matchesTopColor) {
-                topShapeMatch++;
+                topColorMatch++;
                 stringBuilder.append("<i style=\"color: blue;\">**YES MATCH*** </i>");
                 stringBuilder.append("</br>");
             } else {
@@ -232,28 +254,10 @@ public class IntTest {
                 stringBuilder.append("</br>");
             }
 
-            var imprintPredictionsList = predictionResponse.getImprintPredictions().stream().toList();
-            var textOcrPredicted = String.join("", imprintPredictionsList);
-            stringBuilder.append("<b>Text Predicted: </b>");
-            stringBuilder.append("<i>");
-            stringBuilder.append(textOcrPredicted);
-            stringBuilder.append("</i>");
-            stringBuilder.append("</br>");
-
-
-            stringBuilder.append("<b>Does imprint predicted imprint match actual exactly?: </b>");
-            if (textOcrPredicted.toLowerCase() == pillFromDb.get().getImprint().toLowerCase()) {
-                imprintExactMatch++;
-                stringBuilder.append("<i style=\"color: blue;\">**YES MATCH*** </i>");
-                stringBuilder.append("</br>");
-            } else {
-                stringBuilder.append("<i style=\"color: orange;\">***NO MATCH***</i>");
-                stringBuilder.append("</br>");
-            }
+            stringBuilder.append("</div>");
 
             stringBuilder.append("</br>");
-            stringBuilder.append("<h3>Pill Predictions</h3>");
-            stringBuilder.append("</br>");
+            stringBuilder.append("<h3><u>Pill Predictions</u></h3>");
             stringBuilder.append("</br>");
 
             var pillPreNum = 0;
@@ -271,13 +275,13 @@ public class IntTest {
                 pillPreNum++;
 
                 stringBuilder.append("</br>");
-                stringBuilder.append("<h4>Pill Prediction #" + pillPreNum + "</h4>");
+                stringBuilder.append("<h4 style=\"background-color:Grey; color:white;\">Pill Prediction #" + pillPreNum + "</h4>");
 
                 stringBuilder.append("</br>");
 
                 stringBuilder.append("<b>Pill Match Probability: </b>");
                 stringBuilder.append("<i>");
-                stringBuilder.append(prediction.getKey().getProprietaryName());
+                stringBuilder.append(prediction.getValue());
                 stringBuilder.append("</i>");
                 stringBuilder.append("</br>");
 
@@ -324,7 +328,7 @@ public class IntTest {
                 stringBuilder.append("</i>");
                 stringBuilder.append("</br>");
 
-                if (pillFromDb.get().getShape().toLowerCase() == prediction.getKey().getShape().toLowerCase()) {
+                if (pillFromDb.get().getShape().equalsIgnoreCase(prediction.getKey().getShape())) {
                     shapeFound = true;
                     stringBuilder.append("<i style=\"color: blue;\">**YES MATCH*** At least partial match found.</i>");
                     stringBuilder.append("</br>");
@@ -353,7 +357,7 @@ public class IntTest {
                     }
                 }
 
-                var isMatch = prediction.getKey().getId() == pillFromDb.get().getId();
+                var isMatch = prediction.getKey().getId().equals(pillFromDb.get().getId());
                 if (isMatch){
                     totalCorrectMatches++;
                 }
@@ -361,7 +365,7 @@ public class IntTest {
                 stringBuilder.append("</br>");
                 stringBuilder.append("<b>Is this a correct match?</b>");
                 stringBuilder.append("<i>");
-                stringBuilder.append(isMatch ? "<i style=\"color: green;\"> YES PILL MATCH</i>" : "<i style=\"color: red;\"> NO PILL MATCH</i>");
+                stringBuilder.append(isMatch ? "<i style=\"color: white;background-color:green;\"> YES PILL MATCH</i>" : "<i style=\"color: white;background-color:red;\"> NO PILL MATCH</i>");
                 stringBuilder.append("</i>");
                 stringBuilder.append("</br>");
             }
@@ -410,7 +414,7 @@ public class IntTest {
         stringBuilder.append("%</i>");
         stringBuilder.append("</br>");
 
-        stringBuilder.append("<b>Number of top predicted shape matches: </b>");
+        stringBuilder.append("<b>Number of top predicted color matches: </b>");
         stringBuilder.append("<i>");
         stringBuilder.append(topColorMatch);
         stringBuilder.append(" of ");
@@ -419,36 +423,36 @@ public class IntTest {
         stringBuilder.append(((float)topColorMatch/totalPills)*100);
         stringBuilder.append("%</i>");
         stringBuilder.append("</br>");
-
-        stringBuilder.append("<b>Number of at least partial imprint matches on any prediction: </b>");
-        stringBuilder.append("<i>");
-        stringBuilder.append(totalNumberCorrectAtLeastPartialImprintMatches);
-        stringBuilder.append(" of ");
-        stringBuilder.append(totalAvailableImprints);
-        stringBuilder.append(" (pills that have imprints in test set), percentage: accuracy ");
-        stringBuilder.append(((float)totalNumberCorrectAtLeastPartialImprintMatches/totalAvailableImprints)*100);
-        stringBuilder.append("%</i>");
-        stringBuilder.append("</br>");
-
-        stringBuilder.append("<b>Number of at least partial color matches on any prediction: </b>");
-        stringBuilder.append("<i>");
-        stringBuilder.append(totalNumberCorrectAtLeastPartialColorMatches);
-        stringBuilder.append(" of ");
-        stringBuilder.append(totalPills);
-        stringBuilder.append(" total pills in test set, percentage: accuracy ");
-        stringBuilder.append(((float)totalNumberCorrectAtLeastPartialColorMatches/totalPills)*100);
-        stringBuilder.append("%</i>");
-        stringBuilder.append("</br>");
-
-        stringBuilder.append("<b>Number of at least partial shape matches on any prediction: </b>");
-        stringBuilder.append("<i>");
-        stringBuilder.append(totalNumberCorrectShapeMatches);
-        stringBuilder.append(" of ");
-        stringBuilder.append(totalPills);
-        stringBuilder.append(" total pills in test set, percentage: accuracy ");
-        stringBuilder.append(((float)totalNumberCorrectShapeMatches/totalPills)*100);
-        stringBuilder.append("%</i>");
-        stringBuilder.append("</br>");
+//
+//        stringBuilder.append("<b>Number of at least partial imprint matches on any prediction: </b>");
+//        stringBuilder.append("<i>");
+//        stringBuilder.append(totalNumberCorrectAtLeastPartialImprintMatches);
+//        stringBuilder.append(" of ");
+//        stringBuilder.append(totalAvailableImprints);
+//        stringBuilder.append(" (pills that have imprints in test set), percentage: accuracy ");
+//        stringBuilder.append(((float)totalNumberCorrectAtLeastPartialImprintMatches/totalAvailableImprints)*100);
+//        stringBuilder.append("%</i>");
+//        stringBuilder.append("</br>");
+//
+//        stringBuilder.append("<b>Number of at least partial shape matches on any prediction: </b>");
+//        stringBuilder.append("<i>");
+//        stringBuilder.append(totalNumberCorrectShapeMatches);
+//        stringBuilder.append(" of ");
+//        stringBuilder.append(totalPills);
+//        stringBuilder.append(" total pills in test set, percentage: accuracy ");
+//        stringBuilder.append(((float)totalNumberCorrectShapeMatches/totalPills)*100);
+//        stringBuilder.append("%</i>");
+//        stringBuilder.append("</br>");
+//
+//        stringBuilder.append("<b>Number of at least partial color matches on any prediction: </b>");
+//        stringBuilder.append("<i>");
+//        stringBuilder.append(totalNumberCorrectAtLeastPartialColorMatches);
+//        stringBuilder.append(" of ");
+//        stringBuilder.append(totalPills);
+//        stringBuilder.append(" total pills in test set, percentage: accuracy ");
+//        stringBuilder.append(((float)totalNumberCorrectAtLeastPartialColorMatches/totalPills)*100);
+//        stringBuilder.append("%</i>");
+//        stringBuilder.append("</br>");
 
             BufferedWriter writer = new BufferedWriter(new FileWriter("Randomized_Test_Report.html"));
             writer.write(stringBuilder.toString());
