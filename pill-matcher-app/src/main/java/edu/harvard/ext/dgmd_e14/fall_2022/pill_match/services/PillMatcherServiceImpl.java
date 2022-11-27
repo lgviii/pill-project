@@ -165,7 +165,7 @@ public class PillMatcherServiceImpl implements PillMatcherService {
 
         for (Pill pill : pills) {
             if (pill.hasImprint()) {
-                double accuracy = checkAllPredictionsAgainstImprint(predictionGroups, pill);
+                double accuracy = findHighestAccuracy(predictionGroups, pill.getImprintSections());
                 if (accuracy > 0) {
                     pillMatchMap.put(pill, accuracy);
                 }
@@ -174,12 +174,25 @@ public class PillMatcherServiceImpl implements PillMatcherService {
         return pillMatchMap;
     }
 
-    double checkAllPredictionsAgainstImprint(Collection<String> predictionGroups, Pill pill) {
-        List<String> imprintSections = pill.getImprintSections();
+    @Override
+    public boolean doesPredictionMatchImprint(Collection<String> predictionGroups, String imprint) {
+        if (predictionGroups.isEmpty() || predictionGroups.stream().allMatch(String::isBlank)) {
+            return imprint == null || imprint.isBlank();
+        }
+        else if (imprint == null || imprint.isBlank()) {
+            return false;
+        }
+        else {
+            List<String> imprintSections = Arrays.asList(imprint.toLowerCase().split(";"));
+            var highestAccuracy = findHighestAccuracy(predictionGroups, imprintSections);
+            return (Math.abs(highestAccuracy - 1.0) < 1e-5);
+        }
+    }
 
-        double highestAccuracy = 0.0;
+    double findHighestAccuracy(Collection<String> predictionGroups, List<String> imprintSections) {
+        var highestAccuracy = 0.0;
         for (String predictionGroup : predictionGroups) {
-            double accuracy = checkPredictionGroup(predictionGroup, imprintSections);
+            var accuracy = checkPredictionGroup(predictionGroup, imprintSections);
             if (accuracy > highestAccuracy) {
                 highestAccuracy = accuracy;
             }

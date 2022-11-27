@@ -45,6 +45,26 @@ class PillMatcherServiceImplUnitTest {
     }
 
     @Test
+    void doesPredictionMatchImprint() {
+        var result1 = service.doesPredictionMatchImprint(Arrays.asList("TEVA;7871", "TEVA;7671"), "7671;TEVA");
+        assertThat(result1, is(true));
+
+        var result2 = service.doesPredictionMatchImprint(Arrays.asList("TEVA;7871", "TEVO;7871"), "7671;TEVA");
+        assertThat(result2, is(false));
+    }
+
+    @Test
+    void findHighestAccuracy() {
+        var result1 = service.findHighestAccuracy(Arrays.asList("TEVA;7871", "TEVA;7671"),
+                                                  Arrays.asList("TEVA", "7671"));
+        assertThat(result1, is(1.0));
+
+        var result2 = service.findHighestAccuracy(Arrays.asList("TEVA;7871", "TEVO;7871"),
+                                                  Arrays.asList("TEVA", "7671"));
+        assertThat(result2, is(0.875));
+    }
+
+    @Test
     void checkAllPredictionsAgainstImprint() {
     }
 
