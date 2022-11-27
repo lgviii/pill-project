@@ -23,12 +23,9 @@ public class PredictionServiceImpl implements PredictionService {
     public Collection<ImageModelOutput> formatServiceResponse(String ocrResponse, String colorResponse, String shapeResponse) {
         var imageModelOutput = new ImageModelOutput();
 
-        var ocrStringList = new ArrayList<String>();
-
-        var ocrStringListSemiColonSplit = ocrResponse.split(";");
-        for (var substring : ocrStringListSemiColonSplit) {
-            ocrStringList.addAll(Arrays.asList(substring.split("\n")));
-        }
+        // The OCR response contains the predictions from all the image permutations, with each one separated by a line
+        // break, so split it back into the individual predictions based on the line breaks
+        var ocrStringList = Arrays.asList(ocrResponse.split("\n"));
 
         imageModelOutput.setImprintPredictions(ocrStringList);
         imageModelOutput.setColorModelMatches(getResponseMap(colorResponse));
