@@ -1,6 +1,7 @@
 package edu.harvard.ext.dgmd_e14.fall_2022.pill_match.services;
 
 import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.ImageModelOutput;
+import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities.Pill;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -8,10 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.*;
 
 @Service
 public class PredictionServiceImpl implements PredictionService {
@@ -131,6 +129,17 @@ public class PredictionServiceImpl implements PredictionService {
             stringBuilder.append("</br>");
         }
         return stringBuilder.toString();
+    }
+
+    public Map<Pill, Double> getPredictions(Path fileNameAndPath) {
+        var ocrResponse = RequestOcrRun(fileNameAndPath.toString());
+        var colorResponse = RequestColorRun(fileNameAndPath.toString());
+        var shapeResponse = RequestShapeRun(fileNameAndPath.toString());
+
+        var formattedResponse = formatServiceResponse(ocrResponse, colorResponse, shapeResponse);
+        var pillPredictions = pillMatcherService.findMatchingPills(formattedResponse);
+
+        return pillPredictions;
     }
 
     private String RequestOcrRun(String fileLocation) {

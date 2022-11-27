@@ -28,35 +28,6 @@ class PredictionServiceImplTest {
         service = new PredictionServiceImpl(pillMatcherServiceImpl);
     }
 
-    @Test
-    void testRandomPillSet() throws IOException {
-
-        var map = matchPillsByPredictedImprints();
-
-        assertThat(map.isEmpty(), is(false));
-
-    }
-
-
-    HashMap<String, Integer> matchPillsByPredictedImprints() throws IOException {
-
-        var br = new BufferedReader(new FileReader("C:\\dev\\Classes\\DGMD14\\pill-project\\pill-matcher-app\\src\\test\\resources\\split_splimage_all_PillSer_only.csv"));
-
-        var fileNameToPillSerMap = new HashMap<String, Integer>();
-
-        String line;
-
-        while ((line = br.readLine()) != null) {
-            String[] csvContent = line.split(",");
-            fileNameToPillSerMap.put(csvContent[0], Integer.parseInt(csvContent[1]));
-        }
-
-        return fileNameToPillSerMap;
-    }
-
-
-
-
         @Test
         void given_validServiceData_when_formatServiceResponse_then_responsePopulated() {
             var tempOcr = "rad;se;rad;kindness;rad;joy;ocal;comil;eastsideral;see;read;rendnsness;rad;jony;comlocal;eastside";

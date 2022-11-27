@@ -71,4 +71,5 @@ public interface PillRepository extends JpaRepository<Pill, Long> {
            + "WHERE pill.shape = :shape AND :color1 IN ELEMENTS(pill.colors) AND :color2 IN ELEMENTS(pill.colors)")
     List<Pill> findAllByShapeAndTwoColors(@Param("shape") String shape, @Param("color1") String colorOne,
                                           @Param("color2") String colorTwo);
+
 }
