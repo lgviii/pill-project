@@ -150,6 +150,7 @@ public class IntTest {
 
             var pillFromDb = pillRepository.findById(Integer.toUnsignedLong(pillEntry.getValue()));
             var filePath = testFilePath + pillEntry.getKey();
+            var fileName = pillEntry.getKey();
 
             System.out.println("Testing: " + pillEntry.getKey());
 
@@ -185,7 +186,8 @@ public class IntTest {
             stringBuilder.append(pillEntry.getKey());
             stringBuilder.append("</i>");
             stringBuilder.append("</br>");
-            stringBuilder.append("<img style=\"height: 300px;\" src=\"" + filePath + "\">");
+            stringBuilder.append("<img style=\"height: 300px;\" src=\"http://127.0.0.1:7001/static/" + fileName +
+                                 "\">");
             stringBuilder.append("</br>");
 
             stringBuilder.append("<b>Pill Proprietary Name: </b>");
