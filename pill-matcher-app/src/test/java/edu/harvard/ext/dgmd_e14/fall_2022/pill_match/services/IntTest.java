@@ -34,11 +34,11 @@ public class IntTest {
 
     private String testFilePath = "C:\\Users\\lgvii\\Desktop\\pills\\all_square\\";
 
-    HashMap<String, Integer> matchPillsByPredictedImprints() throws IOException {
+    HashMap<String, Integer> matchPillsByPredictedImprints(String csvFilePath) throws IOException {
 
-        var br = new BufferedReader(new FileReader("C:\\dev\\Classes\\DGMD14\\pill-project\\pill-matcher-app\\src\\test\\resources\\split_splimage_all_PillSer_only.csv"));
+        var br = new BufferedReader(new FileReader(csvFilePath));
 
-        var fileNameToPillSerMap = new HashMap<String, Integer>();
+        var fileNameToPillSerMap = new LinkedHashMap<String, Integer>();
 
         String line;
 
@@ -53,7 +53,9 @@ public class IntTest {
     @Test
     public void testRandomPillSet() throws IOException {
 
-        var fileNameToPillSerMap = matchPillsByPredictedImprints();
+        var fileNameToPillSerMap = matchPillsByPredictedImprints(
+                "C:\\dev\\Classes\\DGMD14\\pill-project\\pill-matcher-app\\src\\test\\resources\\split_splimage_all_PillSer_only.csv"
+        );
 
         var rand = new Random();
         var allPillEntries = fileNameToPillSerMap.entrySet().stream().toList();
@@ -68,9 +70,9 @@ public class IntTest {
 
             File f = new File(testFilePath + randomPillEntry.getKey());
 
-            if(f.exists() && !f.isDirectory()) {
+            if (f.exists() && !f.isDirectory()) {
 
-                var randomPillEntryId =  randomPillEntry.getValue();
+                var randomPillEntryId = randomPillEntry.getValue();
 
                 if (!usedIds.contains(randomPillEntryId)) {
                     usedIds.add(randomPillEntryId);
@@ -82,10 +84,50 @@ public class IntTest {
                 i--;
             }
         }
+        runPillTests(selectedPillEntries, "Randomized Pill Prediction: " + numberRandSample + " Pills",
+                     "Randomized_Test_Report.html");
+        assertThat(fileNameToPillSerMap.isEmpty(), is(false));
+    }
+
+    @Test
+    public void testAllPillsInCsv() throws IOException {
+
+        var fileNameToPillSerMap = matchPillsByPredictedImprints(
+                "C:\\dev\\Classes\\DGMD14\\pill-project\\pill-matcher-app\\src\\test\\resources\\split_splimage_front_PillSer_only.csv"
+        );
+
+        var allPillEntries = fileNameToPillSerMap.entrySet().stream().toList();
+        var selectedPillEntries = new ArrayList<Map.Entry<String, Integer>>();
+        var usedIds = new ArrayList<Integer>();
+
+        int nPills = allPillEntries.size();
+
+        for (int i = 0; i < nPills; i++) {
+            var pillEntry = allPillEntries.get(i);
+
+            File f = new File(testFilePath + pillEntry.getKey());
+
+            if (f.exists() && !f.isDirectory()) {
+
+                var pillEntryId = pillEntry.getValue();
+
+                if (!usedIds.contains(pillEntryId)) {
+                    usedIds.add(pillEntryId);
+                    selectedPillEntries.add(pillEntry);
+                }
+            }
+        }
+        runPillTests(selectedPillEntries, "Pill Prediction: " + selectedPillEntries.size() + " Pills",
+                     "Test_Report.html");
+        assertThat(fileNameToPillSerMap.isEmpty(), is(false));
+    }
+
+    private void runPillTests(List<Map.Entry<String, Integer>> selectedPillEntries, String title,
+                              String outputFile) throws IOException {
 
         StringBuilder stringBuilder = new StringBuilder();
 
-        stringBuilder.append("<h1>Randomized Pill Prediction: " + numberRandSample + " Pills</h1>");
+        stringBuilder.append("<h1>" + title + "</h1>");
         stringBuilder.append("</br>");
         stringBuilder.append("</br>");
 
@@ -108,6 +150,7 @@ public class IntTest {
 
             var pillFromDb = pillRepository.findById(Integer.toUnsignedLong(pillEntry.getValue()));
             var filePath = testFilePath + pillEntry.getKey();
+            var fileName = pillEntry.getKey();
 
             System.out.println("Testing: " + pillEntry.getKey());
 
@@ -143,7 +186,8 @@ public class IntTest {
             stringBuilder.append(pillEntry.getKey());
             stringBuilder.append("</i>");
             stringBuilder.append("</br>");
-            stringBuilder.append("<img style=\"height: 300px;\" src=\"" + filePath + "\">");
+            stringBuilder.append("<img style=\"height: 300px;\" src=\"http://127.0.0.1:7001/static/" + fileName +
+                                 "\">");
             stringBuilder.append("</br>");
 
             stringBuilder.append("<b>Pill Proprietary Name: </b>");
@@ -461,10 +505,8 @@ public class IntTest {
 //        stringBuilder.append("%</i>");
 //        stringBuilder.append("</br>");
 
-            BufferedWriter writer = new BufferedWriter(new FileWriter("Randomized_Test_Report.html"));
-            writer.write(stringBuilder.toString());
-            writer.close();
-
-        assertThat(fileNameToPillSerMap.isEmpty(), is(false));
+        BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
+        writer.write(stringBuilder.toString());
+        writer.close();
     }
 }
