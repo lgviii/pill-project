@@ -15,8 +15,6 @@ public class PillMatcherServiceImpl implements PillMatcherService {
 
     private static final int MODEL_OUTPUT_LIMIT = 2;
 
-    private static final int PILL_MATCH_LIMIT = 5;
-
     private final LevenshteinDistance levenshteinDistance;
     private final PillRepository pillRepository;
 
@@ -115,7 +113,9 @@ public class PillMatcherServiceImpl implements PillMatcherService {
 
         var result = new LinkedHashMap<Pill, Double>();
 
-        var sublist = sortedOutputMap.stream().count() > 10 ? sortedOutputMap.subList(0, PILL_MATCH_LIMIT) : sortedOutputMap;
+        var sublist = sortedOutputMap.size() > PILL_MATCH_LIMIT ?
+                      sortedOutputMap.subList(0, PILL_MATCH_LIMIT) :
+                      sortedOutputMap;
 
         for (Map.Entry<Pill, Double> entry : sublist) {
             result.put(entry.getKey(), entry.getValue());
@@ -183,7 +183,7 @@ public class PillMatcherServiceImpl implements PillMatcherService {
     }
 
     @Override
-    public double getHighestMatchAccuracy(Collection<String> predictionGroups, String imprint) {
+    public double getHighestImprintMatchAccuracy(Collection<String> predictionGroups, String imprint) {
         // If there was no predicted imprint, and no actual imprint, consider that a match
         if (predictionGroups.isEmpty() || predictionGroups.stream().allMatch(String::isBlank)) {
             if (imprint == null || imprint.isBlank()) {
