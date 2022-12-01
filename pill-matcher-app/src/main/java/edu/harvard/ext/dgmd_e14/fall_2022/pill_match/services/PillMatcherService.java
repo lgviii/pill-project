@@ -85,11 +85,23 @@ public interface PillMatcherService {
      * Checks if at least one of the specified groups of predictions exactly matches the specified pill imprint.
      *
      * @param predictionGroups Collection containing predicted imprints, with each String including all the predictions
-     *      *                  from a single source, separated by semicolons, may be empty if no predictions
+     *                         from a single source, separated by semicolons, may be empty if no predictions
      * @param imprint          actual imprint text for a pill, containing the imprint sections separated by semicolons,
      *                         may be null/blank if no imprint
      * @return true if at least one of the specified groups of predictions exactly matches the specified pill imprint,
      *         including if both are empty/blank, false if they don't match exactly
      */
     boolean doesPredictionMatchImprint(Collection<String> predictionGroups, String imprint);
+
+    /**
+     * Calculates the highest accuracy of the match between any of the prediction groups and the actual specified
+     * pill imprint.
+     *
+     * @param predictionGroups Collection containing predicted imprints, with each String including all the predictions
+     *                         from a single source, separated by semicolons, may be empty if no predictions
+     * @param imprint          actual imprint text for a pill, containing the imprint sections separated by semicolons,
+     *                         may be null/blank if no imprint
+     * @return highest accuracy of a match between any of the prediction groups and the actual specified pill imprint
+     */
+    double getHighestMatchAccuracy(Collection<String> predictionGroups, String imprint);
 }

@@ -15,7 +15,7 @@ public class PillMatcherServiceImpl implements PillMatcherService {
 
     private static final int MODEL_OUTPUT_LIMIT = 2;
 
-    private static final int PILL_MATCH_LIMIT = 10;
+    private static final int PILL_MATCH_LIMIT = 5;
 
     private final LevenshteinDistance levenshteinDistance;
     private final PillRepository pillRepository;
@@ -83,13 +83,6 @@ public class PillMatcherServiceImpl implements PillMatcherService {
             var filteredColorShapePillMatchMap =  colorShapePillMatchMap.entrySet().stream()
                     .filter(entry -> entry.getKey().hasImprint())
                     .collect(Collectors.toMap(x -> x.getKey(), x -> x.getValue()));
-
-//            for (var entry : colorShapePillMatchMap.entrySet()) {
-//                var pill = entry.getKey();
-//                if (!pill.hasImprint()) {
-//                    colorShapePillMatchMap.remove(pill);
-//                }
-//            }
 
             Map<Pill, Double> imprintMatches = matchPillsByPredictedImprints(predictionGroups,
                                                                              filteredColorShapePillMatchMap.keySet());
@@ -189,6 +182,27 @@ public class PillMatcherServiceImpl implements PillMatcherService {
         }
     }
 
+    @Override
+    public double getHighestMatchAccuracy(Collection<String> predictionGroups, String imprint) {
+        // If there was no predicted imprint, and no actual imprint, consider that a match
+        if (predictionGroups.isEmpty() || predictionGroups.stream().allMatch(String::isBlank)) {
+            if (imprint == null || imprint.isBlank()) {
+                return 1.0;
+            }
+            else {
+                return 0.0;
+            }
+        }
+        // If there was a predicted imprint, but no actual imprint, consider that a 0 accuracy
+        else if (imprint == null || imprint.isBlank()) {
+            return 0.0;
+        }
+        else {
+            List<String> imprintSections = Arrays.asList(imprint.toLowerCase().split(";"));
+            return findHighestAccuracy(predictionGroups, imprintSections);
+        }
+    }
+
     double findHighestAccuracy(Collection<String> predictionGroups, List<String> imprintSections) {
         var highestAccuracy = 0.0;
         for (String predictionGroup : predictionGroups) {
@@ -212,6 +226,7 @@ public class PillMatcherServiceImpl implements PillMatcherService {
         // Track the predictions that don't have an exact match to check in the next round
         List<String> unmatchedPredictions = new ArrayList<>();
         for (String prediction : predictions) {
+            prediction = prediction.strip();
             boolean noMatch = true;
             for (int i = 0; i < sections.size(); i++) {
                 String section = sections.get(i);
