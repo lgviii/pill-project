@@ -7,11 +7,11 @@ import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.PillMatcherApplication;
 import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.entities.Pill;
 import edu.harvard.ext.dgmd_e14.fall_2022.pill_match.repositories.PillRepository;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(
         classes = PillMatcherApplication.class)
 @AutoConfigureMockMvc
@@ -96,7 +96,7 @@ public class IntTest {
             }
         }
         runPillTestsHtmlReport(selectedPillEntries, "Randomized Pill Prediction: " + numberRandSample + " Pills",
-                               "Randomized_Test_Report.html");
+                               "test_results/Randomized_Test_Report.html");
         assertThat(fileNameToPillSerMap.isEmpty(), is(false));
     }
 
@@ -128,7 +128,9 @@ public class IntTest {
                 }
             }
         }
-        runPillTestsCsvReport(selectedPillEntries, "test_results/split_spl_front_predictions.csv");
+        runPillTestsCsvReport(selectedPillEntries,
+                              "test_results/split_spl_front_predictions_top"
+                              + PillMatcherService.PILL_MATCH_LIMIT + ".csv");
         assertThat(fileNameToPillSerMap.isEmpty(), is(false));
     }
 
@@ -522,7 +524,7 @@ public class IntTest {
 
     private void runPillTestsCsvReport(List<Map.Entry<String, Integer>> pillImageToPillSerMap,
                                        String outputFile) throws IOException {
-        var maxMatches = 5;
+        var maxMatches = PillMatcherService.PILL_MATCH_LIMIT;
         List<String[]> csvLines = new ArrayList<>();
         // Add the headers
         List<String> headers = new ArrayList<>(Arrays.asList("FileName", "Ndc11", "Part", "GenericName",
@@ -547,7 +549,7 @@ public class IntTest {
         var imprintMatch80 = 0;
 
         var pillMatchTop1 = 0;
-        var pillMatchTop5 = 0;
+        var pillMatchAny = 0;
 
         var totalAvailableImprints = 0;
 
@@ -632,8 +634,8 @@ public class IntTest {
                 totalAvailableImprints++;
             }
 
-            double imprintMatchAccuracy = pillMatcherService.getHighestMatchAccuracy(imprintPredictionsList,
-                                                                                     pillFromDb.getImprint());
+            double imprintMatchAccuracy = pillMatcherService.getHighestImprintMatchAccuracy(imprintPredictionsList,
+                                                                                            pillFromDb.getImprint());
             csvRow[csvIndex++] = Double.toString(imprintMatchAccuracy);
 
             if (Math.abs(imprintMatchAccuracy - 1.0) < 1e-5) {
@@ -644,10 +646,6 @@ public class IntTest {
                 imprintMatch80++;
             }
 
-            var pillPreNum = 0;
-            var imprintFound = false;
-            var colorFound = false;
-            var shapeFound = false;
 
             // If there are no matching pills, fill in all the pill match entries with an empty String
             if (pillMatches.isEmpty()) {
@@ -656,6 +654,7 @@ public class IntTest {
                 }
             }
             else {
+                var pillPreNum = 0;
                 imagesWithPillPredictions++;
                 for (var pillMatch : pillMatches) {
                     if (pillPreNum >= maxMatches) {
@@ -668,16 +667,17 @@ public class IntTest {
                     csvRow[csvIndex++] = predictedPill.getGenericName();
                     csvRow[csvIndex++] = Double.toString(pillMatch.getValue());
 
-                    pillPreNum++;
-
                     if (predictedPill.equals(pillFromDb)) {
                         if (pillPreNum == 0) {
                             pillMatchTop1++;
+                            pillMatchAny++;
                         }
                         else {
-                            pillMatchTop5++;
+                            pillMatchAny++;
                         }
                     }
+
+                    pillPreNum++;
                 }
             }
 
@@ -706,8 +706,10 @@ public class IntTest {
                                   Integer.toString(imagesWithPillPredictions),
                                   "Top 1", Integer.toString(pillMatchTop1), "Percent Top 1",
                                   Double.toString((double) pillMatchTop1 / totalPills),
-                                  "Top 5", Integer.toString(pillMatchTop5), "Percent Top 5",
-                                  Double.toString((double) pillMatchTop5 / totalPills)});
+                                  "Top " + PillMatcherService.PILL_MATCH_LIMIT,
+                                  Integer.toString(pillMatchAny),
+                                  "Percent Top " + PillMatcherService.PILL_MATCH_LIMIT,
+                                  Double.toString((double) pillMatchAny / totalPills)});
 
 
         try (ICSVWriter writer = new CSVWriterBuilder(new FileWriter(outputFile)).build()) {
