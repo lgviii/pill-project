@@ -29,7 +29,12 @@ public class ImageModelOutput {
 
     /**
      * List containing predicted imprints, with each String including all the predictions from a single
-     * permutation, separated by semicolons.
+     * permutation, separated by semicolons.  That is, the OCR inference service can generate multiple possible
+     * "words" for each image permutation - these are joined together into a single String, using a semicolon
+     * delimiter, and the List contains all such Strings, one per image permutation run through the OCR library.
+     * However, note that only image permutations that have at least one detected "word" will be included - if an
+     * image permutation has no detected "words", that String will not be included.  If none of the image
+     * permutations have any predicted words, the List will either be empty or contain a single empty String.
      */
     @NotNull
     @NotEmpty
