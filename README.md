@@ -2,19 +2,21 @@
 
 The project is structured with a parent pom.xml at the base and multiple modules inheriting from it, to ensure that dependencies and versions stay consistent.
 
-## pill-matcher-app
-This module is intended to be the actual pill-matcher web application.  It's currently empty except for the PillMatcherApplication and ServletInitializer classes which can be used to start the application, along with the Spring Initializer-generated mvnw files, etc.  It runs successfully on my local machine with the values specified in mysql-datasource.properties set to my local database.  This property file will need to be modified to point to whatever container/server DB is actually used for the application.
+## Modules
 
-## pill-matcher-lib
+### pill-matcher-app
+This module contains the actual pill-matcher web application, built using the Spring Boot framework.  This includes the web page, REST controllers, and functionality to contact the model prediction web services and use the results to generate matching pills. 
+
+### pill-matcher-lib
 This is the library module containing the database entities, repository classes, and services used to interact with the pill database.
 
 Currently there are only methods for retrieving pills by shape and color, allowing search with either a single color or two colors.  (For simplicity, it doesn't currently support more than two colors, and there aren't any pills in the database that have more than two colors at the moment.)
 
-## pill-db-fill
+### pill-db-fill
 This is the module used to parse data from the C3PI XML files and fill a database with pill data.  This module shouldn't be used for the actual application.
 
 ## sql-scripts
-This directory contains SQL scripts.
+This directory contains SQL scripts.  They're written for a MySQL database.
 
 * **create_pilldb_mysql_full.sql** - This SQL script contains only creation SQL, and is meant for use with the pill-db-fill module.  It includes creation of the additional PillPhoto table not used by the pill-matcher application.
 
@@ -49,5 +51,14 @@ Set a database for use:
 Load a SQL file:
 `source C:\dev\Classes\DGMD14\pill-project\sql-scripts\pilldb_genericdrug.sql`
 
-## Run project
-The project is setup for **Intellij**. After loading the application in Intelli, load the SQL scripts, and press the play button.
+## Run Web Application
+To run the web application:
+
+1. Build the MySQL pill database using the SQL scripts, and update the config file pill-matcher-app\src\main\resources\mysql-datasource.properties appropriately.
+2. Update the `UploadController` static constant `UPLOAD_DIRECTORY` to a local directory that will be used by both this application and the Python web services application that this one uses for model predictions.  
+3. Use Maven to build pill-matcher-parent (this will build all three modules).
+4. Run the resulting pill-matcher-app jar in the target directory using `java -jar pill-matcher-app-(version).jar`
+
+Using the current configuration, the application can be accessed at https://servername:8080/app.html
+
+(Note that the project is currently setup for **Intellij**.)
