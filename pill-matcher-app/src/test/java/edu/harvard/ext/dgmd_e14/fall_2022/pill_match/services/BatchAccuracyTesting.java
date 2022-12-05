@@ -30,7 +30,7 @@ import static org.hamcrest.Matchers.is;
 @SpringBootTest(
         classes = PillMatcherApplication.class)
 @AutoConfigureMockMvc
-public class IntTest {
+public class BatchAccuracyTesting {
 
     @Autowired
     private PillRepository pillRepository;
