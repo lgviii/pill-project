@@ -43,24 +43,8 @@ public class BatchAccuracyTesting {
 
     private String testFilePath = "C:\\Users\\lgvii\\Desktop\\pills\\all_square\\";
 
-    HashMap<String, Integer> matchPillsByPredictedImprints(String csvFilePath) throws IOException {
-        ClassLoader classLoader = getClass().getClassLoader();
-
-        try (var inputStream = classLoader.getResourceAsStream(csvFilePath);
-             var br = new BufferedReader(new InputStreamReader(inputStream))) {
-            var fileNameToPillSerMap = new LinkedHashMap<String, Integer>();
-
-            String line;
-
-            while ((line = br.readLine()) != null) {
-                String[] csvContent = line.split(",");
-                fileNameToPillSerMap.put(csvContent[0].replace("\"", ""), Integer.parseInt(csvContent[1]));
-            }
-
-            return fileNameToPillSerMap;
-        }
-    }
-
+    // Tests a random subset of input data
+    // To run all data change numberRandSample to represent the complete data size
     @Test
     public void testRandomPillSet() throws IOException {
 
@@ -68,13 +52,15 @@ public class BatchAccuracyTesting {
                 "split_splimage_all_PillSer_only.csv"
         );
 
+        // get a random sample
         var rand = new Random();
         var allPillEntries = fileNameToPillSerMap.entrySet().stream().toList();
         var selectedPillEntries = new ArrayList<Map.Entry<String, Integer>>();
         var usedIds = new ArrayList<Integer>();
 
-        int numberRandSample = 100;
+        int numberRandSample = 5;
 
+        // make sure to skip any missing image files
         for (int i = 0; i < numberRandSample; i++) {
             var randomIndex = rand.nextInt(allPillEntries.size());
             var randomPillEntry = allPillEntries.get(randomIndex);
@@ -95,8 +81,10 @@ public class BatchAccuracyTesting {
                 i--;
             }
         }
+
         runPillTestsHtmlReport(selectedPillEntries, "Randomized Pill Prediction: " + numberRandSample + " Pills",
                                "test_results/Randomized_Test_Report.html");
+
         assertThat(fileNameToPillSerMap.isEmpty(), is(false));
     }
 
@@ -113,6 +101,7 @@ public class BatchAccuracyTesting {
 
         int nPills = allPillEntries.size();
 
+        // make sure to skip any missing image files
         for (int i = 0; i < nPills; i++) {
             var pillEntry = allPillEntries.get(i);
 
@@ -132,6 +121,24 @@ public class BatchAccuracyTesting {
                               "test_results/split_spl_front_predictions_top"
                               + PillMatcherService.PILL_MATCH_LIMIT + ".csv");
         assertThat(fileNameToPillSerMap.isEmpty(), is(false));
+    }
+
+    HashMap<String, Integer> matchPillsByPredictedImprints(String csvFilePath) throws IOException {
+        ClassLoader classLoader = getClass().getClassLoader();
+
+        try (var inputStream = classLoader.getResourceAsStream(csvFilePath);
+             var br = new BufferedReader(new InputStreamReader(inputStream))) {
+            var fileNameToPillSerMap = new LinkedHashMap<String, Integer>();
+
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                String[] csvContent = line.split(",");
+                fileNameToPillSerMap.put(csvContent[0].replace("\"", ""), Integer.parseInt(csvContent[1]));
+            }
+
+            return fileNameToPillSerMap;
+        }
     }
 
     private void runPillTestsHtmlReport(List<Map.Entry<String, Integer>> selectedPillEntries, String title,
@@ -166,8 +173,7 @@ public class BatchAccuracyTesting {
 
             System.out.println("Testing: " + pillEntry.getKey());
 
-
-            Collection<ImageModelOutput> formattedResponse = predictionService.getFormattedResponse(Paths.get(filePath));
+            var formattedResponse = predictionService.getFormattedResponse(Paths.get(filePath));
 
             var predictionResponse = formattedResponse.stream().findFirst().get();
 
@@ -183,68 +189,11 @@ public class BatchAccuracyTesting {
 
             var topShapePrediction = shapeList.stream().findFirst().get();
 
+            var predictions = pillMatcherService.findMatchingPills(formattedResponse).entrySet();
 
-            var predictions = predictionService.getPredictions(formattedResponse).entrySet();
+            pillInfoHtmlBlock(stringBuilder, pillCounter, pillEntry, pillFromDb, fileName);
 
-            stringBuilder.append("</br>");
-            stringBuilder.append("<h2 style=\"background-color:DodgerBlue; color:white;\">Pill #" + pillCounter + "</h3>");
-
-            stringBuilder.append("<div style=\"border:2px solid Tomato;\">");
-            stringBuilder.append("<h3><u>Pill Database Properties</u></h3>");
-            stringBuilder.append("</br>");
-
-            stringBuilder.append("<b>Photo File: </b>");
-            stringBuilder.append("<i>");
-            stringBuilder.append(pillEntry.getKey());
-            stringBuilder.append("</i>");
-            stringBuilder.append("</br>");
-            stringBuilder.append("<img style=\"height: 300px;\" src=\"http://127.0.0.1:7001/static/" + fileName +
-                                 "\">");
-            stringBuilder.append("</br>");
-
-            stringBuilder.append("<b>Pill Proprietary Name: </b>");
-            stringBuilder.append("<i>");
-            stringBuilder.append(pillFromDb.get().getProprietaryName());
-            stringBuilder.append("</i>");
-            stringBuilder.append("</br>");
-
-            stringBuilder.append("<b>Pill Generic Name: </b>");
-            stringBuilder.append("<i>");
-            stringBuilder.append(pillFromDb.get().getGenericName());
-            stringBuilder.append("</i>");
-            stringBuilder.append("</br>");
-
-            if (pillFromDb.get().getImprint() != null) {
-                totalAvailableImprints++;
-
-                stringBuilder.append("<b>Pill Imprint: </b>");
-                stringBuilder.append("<i>");
-                stringBuilder.append(pillFromDb.get().getImprint());
-                stringBuilder.append("</i>");
-                stringBuilder.append("</br>");
-            } else {
-                stringBuilder.append("<b>NO IMPRINT</b>");
-                stringBuilder.append("</br>");
-            }
-
-            stringBuilder.append("<b>Pill Shape: </b>");
-            stringBuilder.append("<i>");
-            stringBuilder.append(pillFromDb.get().getShape());
-            stringBuilder.append("</i>");
-            stringBuilder.append("</br>");
-
-            stringBuilder.append("<b>Pill Color(s): </b>");
-            stringBuilder.append("<i>");
-            stringBuilder.append(String.join(", ", pillFromDb.get().getColors()));
-            stringBuilder.append("</i>");
-            stringBuilder.append("</br>");
-
-            stringBuilder.append("</div>");
-
-            stringBuilder.append("<div style=\"border:2px solid Orange;\">");
-
-            stringBuilder.append("<h3><u>Model Predictions</u></h3>");
-            stringBuilder.append("</br>");
+            totalAvailableImprints = predictionsHeaderHtmlBlock(stringBuilder, totalAvailableImprints, pillFromDb);
 
             var imprintPredictionsList = predictionResponse.getImprintPredictions().stream().toList();
             var textOcrPredicted = String.join("", imprintPredictionsList);
@@ -265,15 +214,7 @@ public class BatchAccuracyTesting {
                 stringBuilder.append("</br>");
             }
 
-            stringBuilder.append("</br>");
-            stringBuilder.append("<b>Top Shape Predicted: </b>");
-            stringBuilder.append("<i>");
-            stringBuilder.append(topShapePrediction.getKey());
-            stringBuilder.append(", percentage: ");
-            stringBuilder.append(topShapePrediction.getValue() * 100);
-            stringBuilder.append("%");
-            stringBuilder.append("</i>");
-            stringBuilder.append("</br>");
+            predictedHtmlBlock(stringBuilder, "<b>Top Shape Predicted: </b>", topShapePrediction);
 
             var matchesTopShape = topShapePrediction.getKey().equalsIgnoreCase(pillFromDb.get().getShape());
 
@@ -287,15 +228,7 @@ public class BatchAccuracyTesting {
                 stringBuilder.append("</br>");
             }
 
-            stringBuilder.append("</br>");
-            stringBuilder.append("<b>Top Color Predicted: </b>");
-            stringBuilder.append("<i>");
-            stringBuilder.append(topColorPrediction.getKey());
-            stringBuilder.append(", percentage: ");
-            stringBuilder.append(topColorPrediction.getValue() * 100);
-            stringBuilder.append("%");
-            stringBuilder.append("</i>");
-            stringBuilder.append("</br>");
+            predictedHtmlBlock(stringBuilder, "<b>Top Color Predicted: </b>", topColorPrediction);
 
             var topColor = topColorPrediction.getKey();
             var pillFromDbList = pillFromDb.get().getColors().stream().toList();
@@ -334,33 +267,11 @@ public class BatchAccuracyTesting {
             for (var prediction : predictions) {
 
                 pillPreNum++;
-
-                stringBuilder.append("</br>");
-                stringBuilder.append("<h4 style=\"background-color:Grey; color:white;\">Pill Prediction #" + pillPreNum + "</h4>");
-
-                stringBuilder.append("</br>");
-
-                stringBuilder.append("<b>Pill Match Probability: </b>");
-                stringBuilder.append("<i>");
-                stringBuilder.append(prediction.getValue());
-                stringBuilder.append("</i>");
-                stringBuilder.append("</br>");
-
-                stringBuilder.append("<b>Pill Proprietary Name: </b>");
-                stringBuilder.append("<i>");
-                stringBuilder.append(prediction.getKey().getProprietaryName());
-                stringBuilder.append("</i>");
-                stringBuilder.append("</br>");
-
-                stringBuilder.append("<b>Pill Generic Name: </b>");
-                stringBuilder.append("<i>");
-                stringBuilder.append(prediction.getKey().getGenericName());
-                stringBuilder.append("</i>");
-                stringBuilder.append("</br>");
-
                 totalNumberCorrectShapeMatches = 0;
                 totalNumberCorrectAtLeastPartialColorMatches = 0;
                 totalNumberCorrectAtLeastPartialImprintMatches = 0;
+
+                getPredictionHtml(stringBuilder, pillPreNum, prediction);
 
                 if (pillFromDb.get().getImprint() != null) {
 
@@ -397,7 +308,6 @@ public class BatchAccuracyTesting {
                     stringBuilder.append("<i style=\"color: orange;\">***NOT TARGET MATCH***</i>");
                     stringBuilder.append("</br>");
                 }
-
 
                 stringBuilder.append("<b>Pill Color: </b>");
                 stringBuilder.append("<i>");
@@ -442,10 +352,94 @@ public class BatchAccuracyTesting {
             }
         }
 
+        endHtmlReport(stringBuilder, totalPills, totalCorrectMatches, topShapeMatch, topColorMatch, imprintExactMatch);
+
+        BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
+        writer.write(stringBuilder.toString());
+        writer.close();
+    }
+
+    private static int predictionsHeaderHtmlBlock(StringBuilder stringBuilder, int totalAvailableImprints, Optional<Pill> pillFromDb) {
+        if (pillFromDb.get().getImprint() != null) {
+            totalAvailableImprints++;
+
+            stringBuilder.append("<b>Pill Imprint: </b>");
+            stringBuilder.append("<i>");
+            stringBuilder.append(pillFromDb.get().getImprint());
+            stringBuilder.append("</i>");
+            stringBuilder.append("</br>");
+        } else {
+            stringBuilder.append("<b>NO IMPRINT</b>");
+            stringBuilder.append("</br>");
+        }
+
+        stringBuilder.append("<b>Pill Shape: </b>");
+        stringBuilder.append("<i>");
+        stringBuilder.append(pillFromDb.get().getShape());
+        stringBuilder.append("</i>");
+        stringBuilder.append("</br>");
+
+        stringBuilder.append("<b>Pill Color(s): </b>");
+        stringBuilder.append("<i>");
+        stringBuilder.append(String.join(", ", pillFromDb.get().getColors()));
+        stringBuilder.append("</i>");
+        stringBuilder.append("</br>");
+
+        stringBuilder.append("</div>");
+
+        stringBuilder.append("<div style=\"border:2px solid Orange;\">");
+
+        stringBuilder.append("<h3><u>Model Predictions</u></h3>");
+        stringBuilder.append("</br>");
+        return totalAvailableImprints;
+    }
+
+    private static void pillInfoHtmlBlock(StringBuilder stringBuilder, int pillCounter, Map.Entry<String, Integer> pillEntry, Optional<Pill> pillFromDb, String fileName) {
+        stringBuilder.append("</br>");
+        stringBuilder.append("<h2 style=\"background-color:DodgerBlue; color:white;\">Pill #" + pillCounter + "</h3>");
+
+        stringBuilder.append("<div style=\"border:2px solid Tomato;\">");
+        stringBuilder.append("<h3><u>Pill Database Properties</u></h3>");
+        stringBuilder.append("</br>");
+
+        stringBuilder.append("<b>Photo File: </b>");
+        stringBuilder.append("<i>");
+        stringBuilder.append(pillEntry.getKey());
+        stringBuilder.append("</i>");
+        stringBuilder.append("</br>");
+        stringBuilder.append("<img style=\"height: 300px;\" src=\"http://127.0.0.1:7001/static/" + fileName +
+                             "\">");
+        stringBuilder.append("</br>");
+
+        stringBuilder.append("<b>Pill Proprietary Name: </b>");
+        stringBuilder.append("<i>");
+        stringBuilder.append(pillFromDb.get().getProprietaryName());
+        stringBuilder.append("</i>");
+        stringBuilder.append("</br>");
+
+        stringBuilder.append("<b>Pill Generic Name: </b>");
+        stringBuilder.append("<i>");
+        stringBuilder.append(pillFromDb.get().getGenericName());
+        stringBuilder.append("</i>");
+        stringBuilder.append("</br>");
+    }
+
+    private static void predictedHtmlBlock(StringBuilder stringBuilder, String str, Map.Entry<String, Double> topColorPrediction) {
+        stringBuilder.append("</br>");
+        stringBuilder.append(str);
+        stringBuilder.append("<i>");
+        stringBuilder.append(topColorPrediction.getKey());
+        stringBuilder.append(", percentage: ");
+        stringBuilder.append(topColorPrediction.getValue() * 100);
+        stringBuilder.append("%");
+        stringBuilder.append("</i>");
+        stringBuilder.append("</br>");
+    }
+
+    private static void endHtmlReport(StringBuilder stringBuilder, long totalPills, int totalCorrectMatches, int topShapeMatch, int topColorMatch, int imprintExactMatch) {
         stringBuilder.append("</br>");
         stringBuilder.append("</br>");
         stringBuilder.append("<h3 style=\"background-color:Orange; color:white;\">Pill Prediction Stats</h3>");
-
 
         stringBuilder.append("<b>Number of matched pills: </b>");
         stringBuilder.append("<i>");
@@ -453,7 +447,7 @@ public class BatchAccuracyTesting {
         stringBuilder.append(" of ");
         stringBuilder.append(totalPills);
         stringBuilder.append(" total pills in test set, percentage accuracy: ");
-        stringBuilder.append(((float)totalCorrectMatches/totalPills)*100);
+        stringBuilder.append(((float) totalCorrectMatches / totalPills)*100);
         stringBuilder.append("%</i>");
         stringBuilder.append("</br>");
 
@@ -463,7 +457,7 @@ public class BatchAccuracyTesting {
         stringBuilder.append(" of ");
         stringBuilder.append(totalPills);
         stringBuilder.append(" total pills in test set, percentage accuracy: ");
-        stringBuilder.append(((float)imprintExactMatch/totalPills)*100);
+        stringBuilder.append(((float) imprintExactMatch / totalPills)*100);
         stringBuilder.append("%</i>");
         stringBuilder.append("</br>");
 
@@ -473,7 +467,7 @@ public class BatchAccuracyTesting {
         stringBuilder.append(" of ");
         stringBuilder.append(totalPills);
         stringBuilder.append(" total pills in test set, percentage accuracy: ");
-        stringBuilder.append(((float)topShapeMatch/totalPills)*100);
+        stringBuilder.append(((float) topShapeMatch / totalPills)*100);
         stringBuilder.append("%</i>");
         stringBuilder.append("</br>");
 
@@ -483,43 +477,34 @@ public class BatchAccuracyTesting {
         stringBuilder.append(" of ");
         stringBuilder.append(totalPills);
         stringBuilder.append(" total pills in test set, percentage accuracy: ");
-        stringBuilder.append(((float)topColorMatch/totalPills)*100);
+        stringBuilder.append(((float) topColorMatch / totalPills)*100);
         stringBuilder.append("%</i>");
         stringBuilder.append("</br>");
-//
-//        stringBuilder.append("<b>Number of at least partial imprint matches on any prediction: </b>");
-//        stringBuilder.append("<i>");
-//        stringBuilder.append(totalNumberCorrectAtLeastPartialImprintMatches);
-//        stringBuilder.append(" of ");
-//        stringBuilder.append(totalAvailableImprints);
-//        stringBuilder.append(" (pills that have imprints in test set), percentage: accuracy ");
-//        stringBuilder.append(((float)totalNumberCorrectAtLeastPartialImprintMatches/totalAvailableImprints)*100);
-//        stringBuilder.append("%</i>");
-//        stringBuilder.append("</br>");
-//
-//        stringBuilder.append("<b>Number of at least partial shape matches on any prediction: </b>");
-//        stringBuilder.append("<i>");
-//        stringBuilder.append(totalNumberCorrectShapeMatches);
-//        stringBuilder.append(" of ");
-//        stringBuilder.append(totalPills);
-//        stringBuilder.append(" total pills in test set, percentage: accuracy ");
-//        stringBuilder.append(((float)totalNumberCorrectShapeMatches/totalPills)*100);
-//        stringBuilder.append("%</i>");
-//        stringBuilder.append("</br>");
-//
-//        stringBuilder.append("<b>Number of at least partial color matches on any prediction: </b>");
-//        stringBuilder.append("<i>");
-//        stringBuilder.append(totalNumberCorrectAtLeastPartialColorMatches);
-//        stringBuilder.append(" of ");
-//        stringBuilder.append(totalPills);
-//        stringBuilder.append(" total pills in test set, percentage: accuracy ");
-//        stringBuilder.append(((float)totalNumberCorrectAtLeastPartialColorMatches/totalPills)*100);
-//        stringBuilder.append("%</i>");
-//        stringBuilder.append("</br>");
+    }
 
-        BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile));
-        writer.write(stringBuilder.toString());
-        writer.close();
+    private static void getPredictionHtml(StringBuilder stringBuilder, int pillPreNum, Map.Entry<Pill, Double> prediction) {
+        stringBuilder.append("</br>");
+        stringBuilder.append("<h4 style=\"background-color:Grey; color:white;\">Pill Prediction #" + pillPreNum + "</h4>");
+
+        stringBuilder.append("</br>");
+
+        stringBuilder.append("<b>Pill Match Probability: </b>");
+        stringBuilder.append("<i>");
+        stringBuilder.append(prediction.getValue());
+        stringBuilder.append("</i>");
+        stringBuilder.append("</br>");
+
+        stringBuilder.append("<b>Pill Proprietary Name: </b>");
+        stringBuilder.append("<i>");
+        stringBuilder.append(prediction.getKey().getProprietaryName());
+        stringBuilder.append("</i>");
+        stringBuilder.append("</br>");
+
+        stringBuilder.append("<b>Pill Generic Name: </b>");
+        stringBuilder.append("<i>");
+        stringBuilder.append(prediction.getKey().getGenericName());
+        stringBuilder.append("</i>");
+        stringBuilder.append("</br>");
     }
 
     private void runPillTestsCsvReport(List<Map.Entry<String, Integer>> pillImageToPillSerMap,
@@ -581,7 +566,7 @@ public class BatchAccuracyTesting {
             shapeList.sort(Comparator.comparingDouble(Map.Entry::getValue));
             Collections.reverse(shapeList);
 
-            var pillMatches = predictionService.getPredictions(formattedResponse).entrySet();
+            var pillMatches = pillMatcherService.findMatchingPills(formattedResponse).entrySet();
 
             String[] csvRow = new String[headers.size()];
             csvRow[csvIndex++] = pillEntry.getKey();

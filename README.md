@@ -62,3 +62,16 @@ To run the web application:
 Using the current configuration, the application can be accessed at https://servername:8080/app.html
 
 (Note that the project is currently setup for **Intellij**.)
+
+## Generate Report
+Two types of reports can be generated - a comparison report (pill picture and data base info printed to compare against the prediction list) or a prediction accuracy report.
+
+### Comparison Report
+
+Run junit test: `testRandomPillSet` in the `BatchAccuracyTesting` class
+
+### Prediction Accuracy Report
+
+Run junit test: `testAllPillsInCsv` in the `BatchAccuracyTesting` class
+
+**Make sure** to update the `testFilePath` in the test file with the location of your test image set.

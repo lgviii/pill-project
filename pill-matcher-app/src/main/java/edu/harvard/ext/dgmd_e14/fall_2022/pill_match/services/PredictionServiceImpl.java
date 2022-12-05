@@ -20,6 +20,7 @@ public class PredictionServiceImpl implements PredictionService {
         this.pillMatcherService = pillMatcherService;
     }
 
+    // Convert the service responses to an internal model
     public Collection<ImageModelOutput> formatServiceResponse(String ocrResponse, String colorResponse, String shapeResponse) {
         var imageModelOutput = new ImageModelOutput();
 
@@ -50,7 +51,6 @@ public class PredictionServiceImpl implements PredictionService {
         return responseMap;
     }
 
-    @Override
     public String getPredictionResponseHtml(Path fileNameAndPath) {
         var ocrResponse = RequestOcrRun(fileNameAndPath.toString());
         var colorResponse = RequestColorRun(fileNameAndPath.toString());
@@ -59,6 +59,12 @@ public class PredictionServiceImpl implements PredictionService {
         var formattedResponse = formatServiceResponse(ocrResponse, colorResponse, shapeResponse);
         var pillPredictions = pillMatcherService.findMatchingPills(formattedResponse);
 
+        StringBuilder stringBuilder = getDisplayHtml(ocrResponse, colorResponse, shapeResponse, pillPredictions);
+
+        return stringBuilder.toString();
+    }
+
+    private static StringBuilder getDisplayHtml(String ocrResponse, String colorResponse, String shapeResponse, LinkedHashMap<Pill, Double> pillPredictions) {
         StringBuilder stringBuilder = new StringBuilder();
 
         stringBuilder.append("<b>Prediction:</b>");
@@ -125,13 +131,7 @@ public class PredictionServiceImpl implements PredictionService {
 
             stringBuilder.append("</br>");
         }
-        return stringBuilder.toString();
-    }
-
-    public Map<Pill, Double> getPredictions(Collection<ImageModelOutput> formattedResponse) {
-        var pillPredictions = pillMatcherService.findMatchingPills(formattedResponse);
-
-        return pillPredictions;
+        return stringBuilder;
     }
 
     public Collection<ImageModelOutput> getFormattedResponse(Path fileNameAndPath) {

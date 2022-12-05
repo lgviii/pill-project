@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -19,17 +20,22 @@ public class UploadController {
 
 	@Autowired
 	private PredictionService predictionService;
-	public static String UPLOAD_DIRECTORY = "C:/Users/lgvii/Desktop/pills";
 
 	@PostMapping("/upload")
 	public ResponseEntity<String> uploadImage(@RequestParam("image") MultipartFile file) throws IOException {
-		var fileNames = new StringBuilder();
-		var fileNameAndPath = Paths.get(UPLOAD_DIRECTORY, file.getOriginalFilename());
-		fileNames.append(file.getOriginalFilename());
+
+		String path = "pill-matcher-app/src/main/resources";
+		var resourcesPath = new File(path);
+		String resourcesAbsolutePath = resourcesPath.getAbsolutePath();
+
+		var fileNameAndPath = Paths.get(resourcesAbsolutePath, file.getOriginalFilename());
+
+		// Write the incoming file to local storage
 		Files.write(fileNameAndPath, file.getBytes());
 
-		var str = predictionService.getPredictionResponseHtml(fileNameAndPath);
+		// Get the result for the client to display
+		var clientResponseContent = predictionService.getPredictionResponseHtml(fileNameAndPath);
 
-		return new ResponseEntity(str, HttpStatus.OK);
+		return new ResponseEntity(clientResponseContent, HttpStatus.OK);
 	}
 }
