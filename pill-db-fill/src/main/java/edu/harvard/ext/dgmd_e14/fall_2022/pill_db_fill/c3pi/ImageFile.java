@@ -2,6 +2,10 @@ package edu.harvard.ext.dgmd_e14.fall_2022.pill_db_fill.c3pi;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
+/**
+ * Class used to represent the File child element in each Image element in the C3PI XML metadata, containing
+ * information about the actual image file.
+ */
 public class ImageFile {
 
     @JacksonXmlProperty(localName = "Name")

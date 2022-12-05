@@ -7,6 +7,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 import java.util.List;
 
+/**
+ * Class used to represent the entire contents of a C3PI image directory metadata XML file.
+ */
 @JacksonXmlRootElement(localName = "MedicosConsultants")
 public class DiscXml {
 
@@ -14,6 +17,10 @@ public class DiscXml {
     @JacksonXmlProperty(localName = "Image")
     private List<Image> images;
 
+    /**
+     * Name of the PillProject "disc", used for both the XML file name and the associated image directory name.  Not
+     * part of the actual XML, stored for convenience.
+     */
     @JsonIgnore
     private String disc;
 

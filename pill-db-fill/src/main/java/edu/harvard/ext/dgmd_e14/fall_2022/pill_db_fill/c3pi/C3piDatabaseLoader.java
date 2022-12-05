@@ -23,6 +23,12 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Class used to fill the database with pill and image information parsed from the C3PI XML metadata files.
+ * Note that it skips any CR2 or WMV entries as these won't be used for the project.
+ * Note that it also filters out any duplicate image file entries, which do exist in the XML files, so each image file
+ * is only added to the database once.
+ */
 public class C3piDatabaseLoader {
 
     static final String XML_DIRECTORY = "E:\\NoBackup\\DGMD E-14 Final project\\images\\C3PI full data\\ALLXML";

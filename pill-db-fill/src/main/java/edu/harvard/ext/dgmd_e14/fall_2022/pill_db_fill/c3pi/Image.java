@@ -5,6 +5,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 import java.util.List;
 
+/**
+ * Class used to represent an Image element in the C3PI XML metadata files, containing information about a single image
+ * in the C3PI dataset.
+ */
 public class Image {
 
     @JacksonXmlProperty(localName = "NDC9")
