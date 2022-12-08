@@ -39,6 +39,7 @@ public class PredictionServiceImpl implements PredictionService {
     }
 
     private static HashMap<String, Double> getResponseMap(String response) {
+        // map Python list string to Java
         response = response.substring(1, response.length() - 1);
         var trimmedList = response.split("\\)\\(");
 
@@ -67,6 +68,7 @@ public class PredictionServiceImpl implements PredictionService {
     private static StringBuilder getDisplayHtml(String ocrResponse, String colorResponse, String shapeResponse, LinkedHashMap<Pill, Double> pillPredictions) {
         StringBuilder stringBuilder = new StringBuilder();
 
+        // show the inferences that were created
         stringBuilder.append("<b>Prediction:</b>");
         stringBuilder.append("</br>");
         stringBuilder.append("<b>Text:</b>");
@@ -92,6 +94,7 @@ public class PredictionServiceImpl implements PredictionService {
         stringBuilder.append("</br>");
         stringBuilder.append("</br>");
 
+        // show the list of predictions
         for (var entry: pillPredictions.entrySet()) {
             stringBuilder.append("<i>Name: </i>");
             stringBuilder.append("<b>");

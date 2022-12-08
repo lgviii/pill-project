@@ -41,6 +41,7 @@ public class BatchAccuracyTesting {
     @Autowired
     private PillMatcherService pillMatcherService;
 
+    // Set this path to where you have downloaded your set of test images
     private String testFilePath = "C:\\Users\\lgvii\\Desktop\\pills\\all_square\\";
 
     // Tests a random subset of input data
@@ -163,6 +164,7 @@ public class BatchAccuracyTesting {
         var topColorMatch = 0;
         var imprintExactMatch = 0;
 
+        // for each pill in the test set, generate a analysis html display block
         for (var pillEntry: selectedPillEntries) {
 
             pillCounter++;
@@ -264,6 +266,7 @@ public class BatchAccuracyTesting {
                 stringBuilder.append("<b style=\"color: white;background-color: purple\">*NO PREDICTION can be made*</b>");
             }
 
+            // for each prediction for the pill, show where it matches the expected pill
             for (var prediction : predictions) {
 
                 pillPreNum++;
